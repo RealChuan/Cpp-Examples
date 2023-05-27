@@ -48,7 +48,7 @@ jobs:
           choco install ninja
           ninja --version
           cmake --version
-          vcpkg install glog --triplet x64-windows
+          vcpkg install glog breakpad --triplet x64-windows
       - name: Install dependencies on macos
         if: startsWith(matrix.os, 'macos')
         shell: bash
@@ -57,7 +57,7 @@ jobs:
           ninja --version
           cmake --version
           clang --version
-          vcpkg install glog  --triplet x64-osx
+          vcpkg install glog breakpad --triplet x64-osx
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -66,7 +66,7 @@ jobs:
           ninja --version
           cmake --version
           gcc --version
-          vcpkg install glog --triplet x64-linux
+          vcpkg install glog breakpad --triplet x64-linux
 
       - uses: actions/checkout@v3
         with:
