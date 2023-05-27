@@ -11,3 +11,14 @@
 #define DISABLE_COPY_MOVE(Class) \
     DISABLE_COPY(Class) \
     DISABLE_MOVE(Class)
+
+class noncopyable
+{
+public:
+    noncopyable(const noncopyable &) = delete;
+    void operator=(const noncopyable &) = delete;
+
+protected:
+    noncopyable() = default;
+    ~noncopyable() = default;
+};

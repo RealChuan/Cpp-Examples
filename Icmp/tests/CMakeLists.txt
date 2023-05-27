@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(icmp_client_unittest icmp_client_unittest.cc)
+target_link_libraries(icmp_client_unittest icmp)

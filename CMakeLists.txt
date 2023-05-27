@@ -93,5 +93,6 @@ add_subdirectory(Mutex)
 
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
   add_subdirectory(Client)
+  add_subdirectory(Icmp)
   add_subdirectory(Server)
 endif()

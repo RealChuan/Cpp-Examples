@@ -1,0 +1,4 @@
+set(PROJECT_SOURCES icmp.cc icmp.hpp)
+ADD_LIBRARY (icmp ${PROJECT_SOURCES})
+
+ADD_SUBDIRECTORY(tests)
