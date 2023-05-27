@@ -1,0 +1,98 @@
+name: CMake Build
+
+on: 
+  # push代码时触发workflow
+  push:
+    paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+        - '.clang-format'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+  pull_request:
+    paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+        - '.clang-format'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+        build_type:
+          - "Release"
+        generators:
+          - "Ninja"
+
+    steps:
+      - name: cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:\vcpkg\installed
+            /usr/local/share/vcpkg/installed
+          key: ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-
+            ${{ runner.os }}-vcpkg-installed-
+      - name: Install dependencies on windows
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install ninja
+          ninja --version
+          cmake --version
+          vcpkg install glog --triplet x64-windows
+      - name: Install dependencies on macos
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          brew install ninja
+          ninja --version
+          cmake --version
+          clang --version
+          vcpkg install glog  --triplet x64-osx
+      - name: Install dependencies on ubuntu
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build
+          ninja --version
+          cmake --version
+          gcc --version
+          vcpkg install glog --triplet x64-linux
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Configure Windows
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: |
+          cmake \
+            -S . \
+            -B ./build \
+            -A x64 \
+            -DCMAKE_INSTALL_PREFIX:PATH=instdir
+      - name: Configure macos or ubuntu
+        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          cmake \
+            -S . \
+            -B ./build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -G "${{ matrix.generators }}" \
+            -DCMAKE_INSTALL_PREFIX:PATH=instdir
+      - name: Build
+        shell: bash
+        run: |
+          cmake --build ./build --config ${{ matrix.build_type }}
+          
