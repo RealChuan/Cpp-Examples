@@ -5,6 +5,8 @@
 int main(int argc, char **argv)
 {
     (void) argc;
+    (void) argv;
+
     // Initialize Google’s logging library.
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
