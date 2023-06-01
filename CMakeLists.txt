@@ -86,9 +86,11 @@ if(glog_FOUND)
   message(STATUS "found glog")
 endif()
 
+add_subdirectory(AtomicQueue)
 add_subdirectory(Breakpad)
 add_subdirectory(DesignPattern)
 add_subdirectory(Glog)
+add_subdirectory(LinkedList)
 add_subdirectory(Mutex)
 
 if(CMAKE_HOST_WIN32)
