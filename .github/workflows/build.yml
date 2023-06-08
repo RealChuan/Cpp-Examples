@@ -98,5 +98,5 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd build && ctest
+        run: cd build && ctest -C ${{ matrix.build_type }} --output-on-failure
           
