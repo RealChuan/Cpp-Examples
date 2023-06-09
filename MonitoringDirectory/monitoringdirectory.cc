@@ -23,10 +23,6 @@ void MonitoringDirectory::start()
         return;
     }
 
-    DWORD filters = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME
-                    | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE
-                    | FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_LAST_ACCESS
-                    | FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_SECURITY;
     m_isRunning = true;
     while (m_isRunning) {
         readDirectoryChanges();
@@ -42,6 +38,8 @@ void MonitoringDirectory::stop()
 
 bool MonitoringDirectory::createHandle()
 {
+    // FILE_FLAG_BACKUP_SEMANTICS: https://docs.microsoft.com/en-us/windows/win32/fileio/file-security-and-access-rights
+    // 创建目录句柄，用于监控目录变化
     m_directoryHandle = CreateFileW(m_directory.c_str(),
                                     FILE_LIST_DIRECTORY,
                                     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -60,6 +58,7 @@ bool MonitoringDirectory::createHandle()
 
 bool MonitoringDirectory::createEvent()
 {
+    // 创建事件句柄，用于异步通知
     m_overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
     if (m_overlapped.hEvent == NULL) {
@@ -88,6 +87,7 @@ void MonitoringDirectory::readDirectoryChanges()
     assert(m_overlapped.hEvent != NULL);
 
     DWORD bytesTransferred = 0;
+    // 监控文件变化类型
     BOOL result = ReadDirectoryChangesW(m_directoryHandle,
                                         m_notifyBuffer,
                                         sizeof(m_notifyBuffer),
@@ -102,6 +102,7 @@ void MonitoringDirectory::readDirectoryChanges()
         return;
     }
 
+    // 等待异步通知
     DWORD waitResult = WaitForSingleObject(m_overlapped.hEvent, INFINITE);
     switch (waitResult) {
     case WAIT_OBJECT_0: processDirectoryChanges(); break;
@@ -116,6 +117,7 @@ void MonitoringDirectory::processDirectoryChanges()
     assert(m_overlapped.hEvent != NULL);
 
     DWORD bytesTransferred = 0;
+    // 获取异步通知结果
     BOOL result = GetOverlappedResult(m_directoryHandle, &m_overlapped, &bytesTransferred, FALSE);
 
     if (!result) {

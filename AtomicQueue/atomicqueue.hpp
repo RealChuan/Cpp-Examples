@@ -23,16 +23,16 @@ public:
 
     void push(const T &data)
     {
-        Node *const new_node = new Node(data);
-        Node *const old_tail = tail_.exchange(new_node);
-        old_tail->next = new_node;
+        Node *const new_node = new Node(data);           // 创建新节点
+        Node *const old_tail = tail_.exchange(new_node); // 交换尾节点
+        old_tail->next = new_node;                       // 原尾节点指向新尾节点
     }
 
     void pop()
     {
-        Node *const old_head = head_.load();
-        head_.store(old_head->next);
-        delete old_head;
+        Node *const old_head = head_.load(); // 获取头节点
+        head_.store(old_head->next);         // 交换头节点
+        delete old_head;                     // 删除原头节点
     }
 
     T &front() { return head_.load()->next->data; }

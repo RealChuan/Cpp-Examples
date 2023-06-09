@@ -2,21 +2,14 @@
 
 int main()
 {
-    vector<int> nums = {1, 2, 3, 4, 5};
-    LinkedList list(nums);
-    list.print();
-    list.reverse();
-    list.print();
-
-    // remove node
-    ListNode *p = list.getHead()->next;
-    list.remove(p);
-    list.print();
-
-    // insert node
-    ListNode *q = list.getHead()->next;
-    list.insert(q, 6);
-    list.print();
-
+    LinkedList<int> linked_list;
+    linked_list.push_front(1);
+    linked_list.push_front(2);
+    linked_list.push_front(3);
+    linked_list.push_front(4);
+    linked_list.push_front(5);
+    linked_list.print();
+    linked_list.reverse();
+    linked_list.print();
     return 0;
 }

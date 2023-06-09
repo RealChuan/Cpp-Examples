@@ -1,1 +1,1 @@
-add_executable(LinkedList main.cc linkedlist.hpp)
+add_executable(LinkedList_Test main.cc linkedlist.hpp)

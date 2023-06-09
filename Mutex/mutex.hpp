@@ -1,7 +1,7 @@
-﻿#ifndef MUTEX_HPP
-#define MUTEX_HPP
+﻿#pragma once
 
 #include <atomic>
+#include <cassert>
 #include <thread>
 
 #include <object.hpp>
@@ -11,13 +11,13 @@ class Mutex
     DISABLE_COPY(Mutex)
 public:
     Mutex() {}
-    ~Mutex() {}
+
+    ~Mutex() { assert(!m_atomic_flag.test_and_set()); }
 
     void lock()
     {
         while (m_atomic_flag.test_and_set(std::memory_order_acquire)) {
-            // 有这一行 ？ 互斥锁：自旋锁；
-            // std::this_thread::yield();
+            std::this_thread::yield();
         }
     }
 
@@ -41,5 +41,3 @@ public:
 
     ~MutexLocker() { m_mutex->unlock(); }
 };
-
-#endif // MUTEX_HPP

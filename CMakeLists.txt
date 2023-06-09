@@ -98,6 +98,7 @@ enable_testing()
 
 add_subdirectory(Algorithm)
 add_subdirectory(AtomicQueue)
+add_subdirectory(BinaryTree)
 add_subdirectory(Breakpad)
 add_subdirectory(DesignPattern)
 add_subdirectory(Glog)
