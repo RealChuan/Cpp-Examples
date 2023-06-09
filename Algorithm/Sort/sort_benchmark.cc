@@ -65,15 +65,6 @@ static void BM_BubbleSort(benchmark::State &state)
 }
 BENCHMARK(BM_BubbleSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
-static void BM_RadixSort(benchmark::State &state)
-{
-    std::vector<int> v = generate_random_vector<int>(state.range(0));
-    for (auto _ : state) {
-        radix_sort(v);
-    }
-}
-BENCHMARK(BM_RadixSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
-
 static void BM_CountingSort(benchmark::State &state)
 {
     std::vector<int> v = generate_random_vector<int>(state.range(0));

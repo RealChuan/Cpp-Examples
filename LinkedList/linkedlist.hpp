@@ -4,139 +4,85 @@
 #include <stack>
 #include <vector>
 
-using namespace std;
-
-// 链表节点
-struct ListNode
-{
-    int val;
-    ListNode *next;
-    ListNode(int x)
-        : val(x)
-        , next(NULL)
-    {}
-};
-
-// 链表类
+template<typename T>
 class LinkedList
 {
 public:
-    // 构造函数
     LinkedList()
-        : head(NULL)
+        : head_(nullptr)
     {}
-    LinkedList(vector<int> &nums)
-    {
-        head = NULL;
-        ListNode *p = NULL;
-        for (int i = 0; i < nums.size(); i++) {
-            if (head == NULL) {
-                head = new ListNode(nums[i]);
-                p = head;
-            } else {
-                p->next = new ListNode(nums[i]);
-                p = p->next;
-            }
-        }
-    }
-    // 析构函数
     ~LinkedList()
     {
-        ListNode *p = head;
-        while (p != NULL) {
-            ListNode *q = p->next;
-            delete p;
-            p = q;
+        while (head_) {
+            Node *const old_head = head_;
+            head_ = head_->next;
+            delete old_head;
         }
     }
-    // 打印链表
-    void print()
+
+    void push_front(const T &data)
     {
-        ListNode *p = head;
-        while (p != NULL) {
-            cout << p->val << " ";
-            p = p->next;
-        }
-        cout << endl;
+        Node *const new_node = new Node(data);
+        new_node->next = head_;
+        head_ = new_node;
     }
-    // 反转链表
+
+    void pop_front()
+    {
+        Node *const old_head = head_;
+        head_ = head_->next;
+        delete old_head;
+    }
+
+    T &front() { return head_->data; }
+
+    bool empty() { return head_ == nullptr; }
+
+    size_t size()
+    {
+        size_t size = 0;
+        Node *node = head_;
+        while (node) {
+            ++size;
+            node = node->next;
+        }
+        return size;
+    }
+
     void reverse()
     {
-        ListNode *p = head;
-        ListNode *q = NULL;
-        while (p != NULL) {
-            ListNode *r = p->next;
-            p->next = q;
-            q = p;
-            p = r;
+        Node *prev = nullptr;        // 前一个节点
+        Node *curr = head_;          // 当前节点
+        while (curr) {
+            Node *next = curr->next; // 下一个节点
+            curr->next = prev;       // 当前节点指向前一个节点
+            prev = curr;             // 前一个节点指向当前节点
+            curr = next;             // 当前节点指向下一个节点
         }
-        head = q;
+        head_ = prev;                // 头节点指向前一个节点
     }
-    // 删除链表中的某个节点
-    void remove(ListNode *node)
+
+    void print()
     {
-        if (node == NULL)
-            return;
-        if (node->next == NULL) {
-            delete node;
-            node = NULL;
-            return;
+        Node *node = head_;
+        while (node) {
+            std::cout << node->data << " ";
+            node = node->next;
         }
-        ListNode *p = node->next;
-        node->val = p->val;
-        node->next = p->next;
-        delete p;
-        p = NULL;
-    }
-    // 插入节点
-    void insert(ListNode *node, int val)
-    {
-        if (node == NULL)
-            return;
-        ListNode *p = new ListNode(val);
-        p->next = node->next;
-        node->next = p;
-    }
-    // 获取链表头节点
-    ListNode *getHead() { return head; }
-    // 获取链表长度
-    int getLength()
-    {
-        int len = 0;
-        ListNode *p = head;
-        while (p != NULL) {
-            len++;
-            p = p->next;
-        }
-        return len;
-    }
-    // 获取链表中
-    ListNode *getMid()
-    {
-        ListNode *p = head;
-        ListNode *q = head;
-        while (q != NULL && q->next != NULL) {
-            p = p->next;
-            q = q->next->next;
-        }
-        return p;
-    }
-    // 从尾到头打印链表
-    void printReverse()
-    {
-        stack<int> s;
-        ListNode *p = head;
-        while (p != NULL) {
-            s.push(p->val);
-            p = p->next;
-        }
-        while (!s.empty()) {
-            cout << s.top() << " ";
-            s.pop();
-        }
-        cout << endl;
+        std::cout << std::endl;
     }
 
 private:
-    ListNode *head;
+    struct Node
+    {
+        Node(const T &data)
+            : data(data)
+            , next(nullptr)
+        {}
+
+        T data;
+        Node *next;
+    };
+
+    Node *head_;
 };

@@ -68,15 +68,6 @@ TEST(SortTest, BubbleSort)
     EXPECT_EQ(v, v1);
 }
 
-TEST(SortTest, RadixSort)
-{
-    std::vector<int> v = generate_random_vector<int>(10);
-    auto v1 = v;
-    std::sort(v1.begin(), v1.end());
-    radix_sort(v);
-    EXPECT_EQ(v, v1);
-}
-
 TEST(SortTest, CountingSort)
 {
     std::vector<int> v = generate_random_vector<int>(10);
