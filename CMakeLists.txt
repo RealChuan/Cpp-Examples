@@ -104,6 +104,7 @@ add_subdirectory(DesignPattern)
 add_subdirectory(Glog)
 add_subdirectory(LinkedList)
 add_subdirectory(Mutex)
+add_subdirectory(Thread)
 
 if(CMAKE_HOST_WIN32)
   add_subdirectory(MonitoringDirectory)

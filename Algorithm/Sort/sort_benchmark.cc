@@ -9,7 +9,6 @@ static void BM_InsertionSort(benchmark::State &state)
         insertion_sort(v);
     }
 }
-BENCHMARK(BM_InsertionSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_SelectionSort(benchmark::State &state)
 {
@@ -18,7 +17,6 @@ static void BM_SelectionSort(benchmark::State &state)
         selection_sort(v);
     }
 }
-BENCHMARK(BM_SelectionSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_MergeSort(benchmark::State &state)
 {
@@ -27,16 +25,14 @@ static void BM_MergeSort(benchmark::State &state)
         merge_sort(v);
     }
 }
-BENCHMARK(BM_MergeSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_QuickSort(benchmark::State &state)
 {
     std::vector<int> v = generate_random_vector<int>(state.range(0));
     for (auto _ : state) {
-        quick_sort(v);
+        quick_sort(v, 0, v.size() - 1);
     }
 }
-BENCHMARK(BM_QuickSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_HeapSort(benchmark::State &state)
 {
@@ -45,7 +41,6 @@ static void BM_HeapSort(benchmark::State &state)
         heap_sort(v);
     }
 }
-BENCHMARK(BM_HeapSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_ShellSort(benchmark::State &state)
 {
@@ -54,7 +49,6 @@ static void BM_ShellSort(benchmark::State &state)
         shell_sort(v);
     }
 }
-BENCHMARK(BM_ShellSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_BubbleSort(benchmark::State &state)
 {
@@ -63,7 +57,6 @@ static void BM_BubbleSort(benchmark::State &state)
         bubble_sort(v);
     }
 }
-BENCHMARK(BM_BubbleSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_CountingSort(benchmark::State &state)
 {
@@ -72,7 +65,6 @@ static void BM_CountingSort(benchmark::State &state)
         counting_sort(v);
     }
 }
-BENCHMARK(BM_CountingSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_BucketSort(benchmark::State &state)
 {
@@ -81,7 +73,6 @@ static void BM_BucketSort(benchmark::State &state)
         bucket_sort(v);
     }
 }
-BENCHMARK(BM_BucketSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 static void BM_StdSort(benchmark::State &state)
 {
@@ -90,6 +81,16 @@ static void BM_StdSort(benchmark::State &state)
         std::sort(v.begin(), v.end());
     }
 }
+
+BENCHMARK(BM_InsertionSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_SelectionSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_MergeSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_HeapSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_QuickSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 13);
+BENCHMARK(BM_ShellSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_BubbleSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_CountingSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
+BENCHMARK(BM_BucketSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 BENCHMARK(BM_StdSort)->RangeMultiplier(2)->Range(1 << 10, 1 << 15);
 
 BENCHMARK_MAIN();

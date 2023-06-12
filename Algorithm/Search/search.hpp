@@ -199,25 +199,34 @@ int sunday_search(const std::vector<T> &v, const std::vector<T> &pattern)
     return -1;                                           // not found
 }
 
-int hash(const std::vector<int> &v)
-{
-    int hash = 0;
-    for (int i = 0; i < v.size(); ++i) {
-        hash += v[i] * pow(10, v.size() - 1 - i); // 10的n次方
-    }
-    return hash;
-}
-
 // Rabin-Karp查找
 template<typename T>
 int rabin_karp_search(const std::vector<T> &v, const std::vector<T> &pattern)
 {
-    int pattern_hash = hash(pattern);                                      // 模式串的哈希值
-    for (int i = 0; i <= v.size() - pattern.size(); ++i) {
-        std::vector<T> sub(v.begin() + i, v.begin() + i + pattern.size()); // 子串
-        if (hash(sub) == pattern_hash) { // 如果子串的哈希值等于模式串的哈希值
-            return i;
+    int pattern_hash = 0; // 模式串的哈希值
+    for (int i = 0; i < pattern.size(); ++i) {
+        pattern_hash += pattern[i];
+    }
+    int v_hash = 0; // 主串的哈希值
+    for (int i = 0; i < pattern.size(); ++i) {
+        v_hash += v[i];
+    }
+    int i = 0;
+    while (i <= v.size() - pattern.size()) { // 从头到尾遍历
+        if (v_hash == pattern_hash) {        // 如果模式串的哈希值等于主串的哈希值
+            int j = 0;
+            while (j < pattern.size() && v[i + j] == pattern[j]) { // 从前往后比较
+                ++j;
+            }
+            if (j == pattern.size()) { // 如果模式串的所有元素都匹配了
+                return i;
+            }
         }
+        if (i + pattern.size() == v.size()) { // 如果模式串的最后一个元素在主串中不存在
+            return -1;                        // not found
+        }
+        v_hash += v[i + pattern.size()] - v[i]; // 将模式串向后移动
+        ++i;
     }
     return -1; // not found
 }
