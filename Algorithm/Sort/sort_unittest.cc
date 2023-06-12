@@ -37,7 +37,7 @@ TEST(SortTest, QuickSort)
     std::vector<int> v = generate_random_vector<int>(10);
     auto v1 = v;
     std::sort(v1.begin(), v1.end());
-    quick_sort(v);
+    quick_sort(v, 0, v.size() - 1);
     EXPECT_EQ(v, v1);
 }
 

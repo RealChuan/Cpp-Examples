@@ -65,35 +65,31 @@ void merge_sort(std::vector<T> &v)
 
 // 快速排序
 template<typename T>
-int quick_sort(std::vector<T> &v)
+void quick_sort(std::vector<T> &v, int left, int right)
 {
-    if (v.size() <= 1) // 如果只有一个元素，就不需要排序
-        return 0;
-    int pivot = v[0];  // 选取第一个元素作为 pivot
-    int i = 1,
-        j = v.size() - 1; // i 指向左边第一个大于 pivot 的元素，j 指向右边第一个小于 pivot 的元素
-    while (i <= j) {                   // 交换左右两部分的元素
-        while (i <= j && v[i] < pivot) // 从左边开始找到第一个大于 pivot 的元素
-            i++;                       //
-        while (i <= j && v[j] > pivot) // 从右边开始找到第一个小于 pivot 的元素
-            j--;
-        if (i <= j) {                  // 交换左右两部分的元素
-            std::swap(v[i], v[j]);
-            i++;
-            j--;
+    if (left >= right) { // 如果只有一个元素，就不需要排序
+        return;
+    }
+    int i = left;                        // 保存左边界
+    int j = right;                       // 保存右边界
+    T pivot = v[left];                   // 保存基准元素
+    while (i < j) {
+        while (i < j && v[j] >= pivot) { // 从右边开始找到第一个小于基准元素的元素
+            --j;
+        }
+        if (i < j) { // 如果找到了，就将该元素放到左边
+            v[i++] = v[j];
+        }
+        while (i < j && v[i] <= pivot) { // 从左边开始找到第一个大于基准元素的元素
+            ++i;
+        }
+        if (i < j) { // 如果找到了，就将该元素放到右边
+            v[j--] = v[i];
         }
     }
-    std::swap(v[0], v[j]);                                // 将 pivot 放到合适的位置
-
-    std::vector<T> left(v.begin(), v.begin() + j);        // 复制左半部分
-    std::vector<T> right(v.begin() + i, v.end());         // 复制右半部分
-    int left_count = quick_sort(left);                    // 递归排序左半部分
-    int right_count = quick_sort(right);                  // 递归排序右半部分
-
-    std::copy(left.begin(), left.end(), v.begin());       // 合并左右两部分
-    std::copy(right.begin(), right.end(), v.begin() + i); // 合并左右两部分
-
-    return left_count + right_count + 1;                  // 返回比较次数
+    v[i] = pivot;                // 将基准元素放到合适的位置
+    quick_sort(v, left, i - 1);  // 递归排序左边部分
+    quick_sort(v, i + 1, right); // 递归排序右边部分
 }
 
 // 堆排序
