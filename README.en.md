@@ -6,8 +6,10 @@
 ## Some obsolete C/C++ code
 
 1.  [Algorithm](./Algorithm/)
-    1.  [Serch](./Algorithm/Search/search.hpp)----------> Implementation of various search algorithms, as well as unit testing and performance testing based on Google Benchmark;
+    1.  [Search](./Algorithm/Search/search.hpp)----------> Implementation of various search algorithms, as well as unit testing and performance testing based on Google Benchmark;
+        1.  [std_search_examples](./Algorithm/Search/std_search_examples.cc)---------->Example of search algorithm in STL;
     2.  [Sort](./Algorithm/Sort/sort.hpp)----------> Implementation of various sorting algorithms, as well as unit testing and performance testing based on Google Benchmark;
+        1.  [std_sort_examples](./Algorithm/Sort/std_sort_examples.cc)----------> Examples of sorting algorithms in STL;
 2.  [AtomicQueue](./AtomicQueue/atomicqueue.hpp)---------->A thread-safe queue implemented using std::atomic;
 3.  [BinaryTree](./BinaryTree/binarytree.hpp)---------->Binary tree related operations, insert, remove, search, print;
 4.  [Client](./Client/client.cpp)----------> A simple Linux select socket client;
@@ -26,3 +28,6 @@
 13. [server_epoll](./Server/server_epoll.cc)---------->Epoll example;
 14. [server_poll](./Server/server_poll.cc)----------> Poll example;
 15. [server_select](./Server/server_select.cc)---------->Select example;
+16. [Thread](./Thread/)---------->Thread class implemented based on std::thread, including thread pool;
+    1.  [Thread](./Thread/thread.hpp)----------> thread class;
+    2.  [ThreadPool](./Thread/threadpool.hpp)----------> thread pool;
