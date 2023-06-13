@@ -14,9 +14,7 @@ public:
     ~LinkedList()
     {
         while (head_) {
-            Node *const old_head = head_;
-            head_ = head_->next;
-            delete old_head;
+            pop_front();
         }
     }
 
