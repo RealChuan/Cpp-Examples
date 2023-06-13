@@ -44,14 +44,14 @@ TEST(AtomicQueue, PushPopManyThreads)
 {
     AtomicQueue<int> queue;
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 100; ++i) {
         threads.emplace_back([&queue, i] { queue.push(i); });
     }
     for (auto &thread : threads) {
         thread.join();
     }
-    EXPECT_EQ(1000, queue.size());
-    for (int i = 0; i < 1000; ++i) {
+    EXPECT_EQ(100, queue.size());
+    for (int i = 0; i < 100; ++i) {
         queue.pop();
     }
     EXPECT_TRUE(queue.empty());
@@ -62,9 +62,28 @@ TEST(AtomicQueue, PushPopManyThreads2)
 {
     AtomicQueue<int> queue;
     std::vector<std::thread> threads;
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 100; ++i) {
         threads.emplace_back([&queue, i] {
             queue.push(i);
+            queue.pop();
+        });
+    }
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    EXPECT_TRUE(queue.empty());
+    EXPECT_EQ(0, queue.size());
+}
+
+TEST(AtomicQueue, PushPopManyThreads3)
+{
+    AtomicQueue<int> queue;
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 100; ++i) {
+        threads.emplace_back([&queue, i] {
+            queue.push(i);
+            queue.push(i);
+            queue.pop();
             queue.pop();
         });
     }

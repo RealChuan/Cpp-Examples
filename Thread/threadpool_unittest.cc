@@ -8,7 +8,7 @@ TEST(ThreadPool, test)
     pool.start();
     std::atomic_int count{0};
     for (int i = 0; i < 100; ++i) {
-        pool.addTask([&count]() { ++count; });
+        pool.addTask([&count]() { count.fetch_add(1); });
     }
     pool.waitForDone();
     EXPECT_EQ(count, 100);
@@ -20,7 +20,7 @@ TEST(ThreadPool, test2)
     pool.start();
     std::atomic_int count{0};
     for (int i = 0; i < 100; ++i) {
-        pool.addTask([&count]() { ++count; });
+        pool.addTask([&count]() { count.fetch_add(1); });
     }
     EXPECT_TRUE(pool.activeThreadCount() == 4);
     pool.clearTasks();
