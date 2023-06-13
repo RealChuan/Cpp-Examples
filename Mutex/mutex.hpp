@@ -1,14 +1,13 @@
 ﻿#pragma once
 
+#include <object.hpp>
+
 #include <atomic>
 #include <cassert>
 #include <thread>
 
-#include <object.hpp>
-
-class Mutex
+class Mutex : noncopyable
 {
-    DISABLE_COPY(Mutex)
 public:
     Mutex() {}
 
@@ -17,7 +16,7 @@ public:
     void lock()
     {
         while (m_atomic_flag.test_and_set(std::memory_order_acquire)) {
-            std::this_thread::yield();
+            std::this_thread::yield(); // 有这一行，就是自旋锁；没有这一行，就是忙等待
         }
     }
 
@@ -27,17 +26,21 @@ private:
     std::atomic_flag m_atomic_flag;
 };
 
-class MutexLocker
+class MutexLocker : noncopyable
 {
-    Mutex *m_mutex;
+    Mutex *m_mutex = nullptr;
 
-    DISABLE_COPY(MutexLocker)
 public:
     MutexLocker(Mutex *mutex)
         : m_mutex(mutex)
     {
+        assert(m_mutex);
         m_mutex->lock();
     }
 
-    ~MutexLocker() { m_mutex->unlock(); }
+    ~MutexLocker()
+    {
+        assert(m_mutex);
+        m_mutex->unlock();
+    }
 };
