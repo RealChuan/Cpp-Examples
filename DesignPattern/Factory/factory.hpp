@@ -17,6 +17,6 @@ public:
 
 enum FactoryType { Computer, Phone };
 
-Factory *createFactory(FactoryType type);
+auto createFactory(FactoryType type) -> Factory *;
 
 #endif // FACTORY_HPP

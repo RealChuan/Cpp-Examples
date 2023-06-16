@@ -28,7 +28,7 @@ public:
             m_condition.notify_all();
         }
     }
-    int getCount() const
+    [[nodiscard]] auto getCount() const -> int
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_count;

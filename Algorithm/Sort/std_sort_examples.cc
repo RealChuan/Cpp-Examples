@@ -55,7 +55,7 @@ void test_sort_heap()
     std::cout << '\n';
 }
 
-int main()
+auto main() -> int
 {
     test_sort();
     test_stable_sort();

@@ -8,7 +8,7 @@
 
 // 顺序查找
 template<typename T>
-int sequential_search(const std::vector<T> &v, const T &value)
+auto sequential_search(const std::vector<T> &v, const T &value) -> int
 {
     for (int i = 0; i < v.size(); ++i) { // 从头到尾遍历
         if (v[i] == value) {             // 如果找到了，就返回下标
@@ -20,7 +20,7 @@ int sequential_search(const std::vector<T> &v, const T &value)
 
 // 二分查找
 template<typename T>
-int binary_search(const std::vector<T> &v, const T &value)
+auto binary_search(const std::vector<T> &v, const T &value) -> int
 {
     int low = 0;                    // 最小下标
     int high = v.size() - 1;        // 最大下标
@@ -39,7 +39,7 @@ int binary_search(const std::vector<T> &v, const T &value)
 
 // 斐波那契查找
 template<typename T>
-int fibonacci_search(const std::vector<T> &v, const T &value)
+auto fibonacci_search(const std::vector<T> &v, const T &value) -> int
 {
     std::vector<int> fibonacci{1, 1};     // 斐波那契数列
     while (fibonacci.back() < v.size()) { // 生成斐波那契数列
@@ -68,7 +68,7 @@ int fibonacci_search(const std::vector<T> &v, const T &value)
 
 // 线性索引查找
 template<typename T>
-int linear_index_search(const std::vector<T> &v, const T &value)
+auto linear_index_search(const std::vector<T> &v, const T &value) -> int
 {
     std::vector<T> index;                // 索引
     index.push_back(v[0]);               // 第一个索引为第一个元素
@@ -94,7 +94,7 @@ int linear_index_search(const std::vector<T> &v, const T &value)
 
 // KMP查找
 template<typename T>
-int kmp_search(const std::vector<T> &v, const std::vector<T> &pattern)
+auto kmp_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
 {
     std::vector<int> next(pattern.size());     // next数组
     next[0] = -1;                              // next数组的第一个元素为-1
@@ -123,7 +123,7 @@ int kmp_search(const std::vector<T> &v, const std::vector<T> &pattern)
     return -1; // not found
 }
 
-int move_by_suffix(int j, const std::vector<int> &suffix, const std::vector<bool> &prefix)
+auto move_by_suffix(int j, const std::vector<int> &suffix, const std::vector<bool> &prefix) -> int
 {
     int k = suffix.size() - 1 - j; // 好后缀长度
     if (suffix[k] != -1) {         // 如果好后缀在模式串中存在
@@ -139,7 +139,7 @@ int move_by_suffix(int j, const std::vector<int> &suffix, const std::vector<bool
 }
 // BM查找
 template<typename T>
-int bm_search(const std::vector<T> &v, const std::vector<T> &pattern)
+auto bm_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
 {
     std::vector<int> bc(256, -1);              // 坏字符哈希表
     for (int i = 0; i < pattern.size(); ++i) { // 生成坏字符哈希表
@@ -176,7 +176,7 @@ int bm_search(const std::vector<T> &v, const std::vector<T> &pattern)
 
 // Sunday查找
 template<typename T>
-int sunday_search(const std::vector<T> &v, const std::vector<T> &pattern)
+auto sunday_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
 {
     std::vector<int> bc(256, -1);              // 坏字符哈希表
     for (int i = 0; i < pattern.size(); ++i) { // 生成坏字符哈希表
@@ -201,7 +201,7 @@ int sunday_search(const std::vector<T> &v, const std::vector<T> &pattern)
 
 // Rabin-Karp查找
 template<typename T>
-int rabin_karp_search(const std::vector<T> &v, const std::vector<T> &pattern)
+auto rabin_karp_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
 {
     int pattern_hash = 0; // 模式串的哈希值
     for (int i = 0; i < pattern.size(); ++i) {

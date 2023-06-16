@@ -2,7 +2,7 @@
 
 #include <memory>
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     (void) argc;
     (void) argv;

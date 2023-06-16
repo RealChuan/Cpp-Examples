@@ -9,21 +9,21 @@ public:
     ~MonitoringDirectory();
 
     void setDirectory(const std::filesystem::path &directory) { m_directory = directory; }
-    std::filesystem::path getDirectory() const { return m_directory; }
+    [[nodiscard]] auto getDirectory() const -> std::filesystem::path { return m_directory; }
 
     void start();
     void stop();
 
-    bool isRunning() const { return m_isRunning; }
-    std::string getLastFileEvent() const
+    [[nodiscard]] auto isRunning() const -> bool { return m_isRunning; }
+    [[nodiscard]] std::string getLastFileEvent() const
     {
         std::string lastEvent = m_notifyBuffer;
         return lastEvent;
     }
 
 private:
-    bool createHandle();
-    bool createEvent();
+    auto createHandle() -> bool;
+    auto createEvent() -> bool;
     void closeHandle();
 
     void readDirectoryChanges();

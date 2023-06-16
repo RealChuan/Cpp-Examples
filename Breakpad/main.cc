@@ -1,6 +1,6 @@
 #include "breakpad.hpp"
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     Breakpad breakpad("./");
     int *p = nullptr;

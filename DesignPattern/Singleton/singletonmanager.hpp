@@ -33,7 +33,7 @@ class SingletonManager
     std::unique_ptr<Singleton2> m_s2_ptr;
 
 public:
-    static SingletonManager &instance()
+    static auto instance() -> SingletonManager &
     {
         static SingletonManager s; // C++11 thread safe
         return s;
@@ -45,7 +45,7 @@ public:
         return *m_s1_ptr;
     }
 
-    Singleton2 &singleton2()
+    auto singleton2() -> Singleton2 &
     {
         std::unique_lock locker(m_mutex);
         return *m_s2_ptr;
