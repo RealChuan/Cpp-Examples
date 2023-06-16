@@ -75,14 +75,14 @@ public:
         std::queue<Task>().swap(m_tasks);
     }
 
-    int activeThreadCount() const { return m_threads.size(); }
-    int queuedTaskCount() const
+    [[nodiscard]] auto activeThreadCount() const -> int { return m_threads.size(); }
+    [[nodiscard]] auto queuedTaskCount() const -> int
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         return m_tasks.size();
     }
 
-    bool isRunning() const { return m_running; }
+    [[nodiscard]] auto isRunning() const -> bool { return m_running; }
 
 private:
     void runInThread()

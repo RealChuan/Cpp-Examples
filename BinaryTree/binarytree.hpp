@@ -11,21 +11,21 @@ public:
     BinaryTree(const std::vector<T> &data);
     BinaryTree(const BinaryTree &other);
     BinaryTree(BinaryTree &&other) noexcept;
-    BinaryTree &operator=(const BinaryTree &other);
-    BinaryTree &operator=(BinaryTree &&other) noexcept;
+    auto operator=(const BinaryTree &other) -> BinaryTree &;
+    auto operator=(BinaryTree &&other) noexcept -> BinaryTree &;
     ~BinaryTree();
 
-    bool operator==(const BinaryTree &other) const;
-    bool operator!=(const BinaryTree &other) const;
-    bool operator<(const BinaryTree &other) const;
-    bool operator>(const BinaryTree &other) const;
-    bool operator<=(const BinaryTree &other) const;
-    bool operator>=(const BinaryTree &other) const;
+    auto operator==(const BinaryTree &other) const -> bool;
+    auto operator!=(const BinaryTree &other) const -> bool;
+    auto operator<(const BinaryTree &other) const -> bool;
+    auto operator>(const BinaryTree &other) const -> bool;
+    auto operator<=(const BinaryTree &other) const -> bool;
+    auto operator>=(const BinaryTree &other) const -> bool;
 
     void insert(const T &data);
     void insert(T &&data) noexcept;
     void remove(const T &data);
-    bool contains(const T &data) const;
+    auto contains(const T &data) const -> bool;
     void clear();
     void preorderTraversal() const;
     void inorderTraversal() const;
@@ -72,7 +72,7 @@ BinaryTree<T>::BinaryTree(BinaryTree &&other) noexcept
 }
 
 template<typename T>
-BinaryTree<T> &BinaryTree<T>::operator=(const BinaryTree &other)
+auto BinaryTree<T>::operator=(const BinaryTree &other) -> BinaryTree<T> &
 {
     if (this != &other) {
         clear();
@@ -86,7 +86,7 @@ BinaryTree<T> &BinaryTree<T>::operator=(const BinaryTree &other)
 }
 
 template<typename T>
-BinaryTree<T> &BinaryTree<T>::operator=(BinaryTree &&other) noexcept
+auto BinaryTree<T>::operator=(BinaryTree &&other) noexcept -> BinaryTree<T> &
 {
     if (this != &other) {
         clear();
@@ -103,7 +103,7 @@ BinaryTree<T>::~BinaryTree()
 }
 
 template<typename T>
-bool BinaryTree<T>::operator==(const BinaryTree &other) const
+auto BinaryTree<T>::operator==(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return true;
@@ -142,13 +142,13 @@ bool BinaryTree<T>::operator==(const BinaryTree &other) const
 }
 
 template<typename T>
-bool BinaryTree<T>::operator!=(const BinaryTree &other) const
+auto BinaryTree<T>::operator!=(const BinaryTree &other) const -> bool
 {
     return !(*this == other);
 }
 
 template<typename T>
-bool BinaryTree<T>::operator<(const BinaryTree &other) const
+auto BinaryTree<T>::operator<(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return false;
@@ -192,7 +192,7 @@ bool BinaryTree<T>::operator<(const BinaryTree &other) const
 }
 
 template<typename T>
-bool BinaryTree<T>::operator>(const BinaryTree &other) const
+auto BinaryTree<T>::operator>(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return false;
@@ -235,13 +235,13 @@ bool BinaryTree<T>::operator>(const BinaryTree &other) const
 }
 
 template<typename T>
-bool BinaryTree<T>::operator<=(const BinaryTree &other) const
+auto BinaryTree<T>::operator<=(const BinaryTree &other) const -> bool
 {
     return !(*this > other);
 }
 
 template<typename T>
-bool BinaryTree<T>::operator>=(const BinaryTree &other) const
+auto BinaryTree<T>::operator>=(const BinaryTree &other) const -> bool
 {
     return !(*this < other);
 }
@@ -366,7 +366,7 @@ void BinaryTree<T>::remove(const T &data)
 }
 
 template<typename T>
-bool BinaryTree<T>::contains(const T &data) const
+auto BinaryTree<T>::contains(const T &data) const -> bool
 {
     Node *current = root;
     while (current) {
@@ -523,7 +523,7 @@ BinaryTree<T>::Node::Node(T &&data) noexcept
 }
 
 template<typename T>
-std::ostream &operator<<(std::ostream &os, const BinaryTree<T> &tree)
+auto operator<<(std::ostream &os, const BinaryTree<T> &tree) -> std::ostream &
 {
     tree.preorderTraversal();
     return os;

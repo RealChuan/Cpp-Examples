@@ -13,10 +13,10 @@ public:
     ~Model() {}
 
     void setID(int id) { m_id = id; }
-    int ID() const { return m_id; }
+    [[nodiscard]] auto ID() const -> int { return m_id; }
 
     void setName(const std::string &name) { m_name = name; }
-    const std::string &name() const { return m_name; }
+    [[nodiscard]] auto name() const -> const std::string & { return m_name; }
 
 private:
     int m_id = 0;

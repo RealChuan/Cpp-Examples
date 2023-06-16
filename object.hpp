@@ -27,7 +27,7 @@ class copyable
 {
 public:
     copyable(const copyable &) = default;
-    copyable &operator=(const copyable &) = default;
+    auto operator=(const copyable &) -> copyable & = default;
 
 protected:
     copyable() = default;

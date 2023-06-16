@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-int main()
+auto main() -> int
 {
     CountDownLatch latch(1);
     std::thread thread([&]() {

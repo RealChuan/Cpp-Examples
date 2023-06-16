@@ -32,9 +32,9 @@ public:
         delete old_head;
     }
 
-    T &front() { return head_->data; }
+    auto front() -> T & { return head_->data; }
 
-    bool empty() { return head_ == nullptr; }
+    auto empty() -> bool { return head_ == nullptr; }
 
     size_t size()
     {

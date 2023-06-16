@@ -173,7 +173,7 @@ void test_search_n()
     }
 }
 
-int main()
+auto main() -> int
 {
     test_find();
     test_find_end();

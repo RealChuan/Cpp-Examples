@@ -36,7 +36,7 @@ public:
     virtual void name() { std::cout << "PhoneFactory" << std::endl; }
 };
 
-Factory *createFactory(FactoryType type)
+auto createFactory(FactoryType type) -> Factory *
 {
     switch (type) {
     case Computer: return new ComputerFactory;

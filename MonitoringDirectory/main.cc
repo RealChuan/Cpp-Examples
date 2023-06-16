@@ -1,6 +1,6 @@
 #include "monitoringdirectory.hpp"
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     MonitoringDirectory monitoringDirectory(".");
     monitoringDirectory.start();
