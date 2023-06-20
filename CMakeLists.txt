@@ -93,6 +93,10 @@ find_package(GTest CONFIG REQUIRED)
 if(GTest_FOUND)
   message(STATUS "found GTest")
 endif()
+find_package(OpenSSL REQUIRED)
+if(OpenSSL_FOUND)
+  message(STATUS "found OpenSSL")
+endif()
 
 enable_testing()
 
@@ -105,6 +109,7 @@ add_subdirectory(DesignPattern)
 add_subdirectory(Glog)
 add_subdirectory(LinkedList)
 add_subdirectory(Mutex)
+add_subdirectory(OpenSSL)
 add_subdirectory(Thread)
 
 if(CMAKE_HOST_WIN32)
