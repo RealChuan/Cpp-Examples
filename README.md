@@ -25,10 +25,19 @@
 10. [LinkedList](./LinkedList/linkedlist.hpp)---------->链表的相关操作，插入、移除、反转、打印；
 11. [MonitoringDirectory](./MonitoringDirectory/monitoring_directory.hpp)---------->Windows 监控目录中文件变化的简单封装；
 12. [Mutex](./Mutex/mutex.hpp)---------->使用std::atomic_flag实现的简单互斥锁和自旋锁；
-13. [Server](./Server)---------->Linux Server的一些例子；
+13. [OpenSSL](./OpenSSL)---------->OpenSSL的一些例子；
+    1. [aes](./OpenSSL/openssl_aes.cc)---------->AES加解密的例子；
+    2. [base64](./OpenSSL/openssl_base64.cc)---------->Base64编解码的例子；
+    3. [hash](./OpenSSL/openssl_hash.cc)---------->SHA-256的例子；
+    4. [hmac](./OpenSSL/openssl_hmac.cc)---------->HMAC的例子；
+    5. [pem](./OpenSSL/openssl_pem.cc)---------->PEM格式的例子；
+    6. [rsa](./OpenSSL/openssl_rsa.cc)---------->RSA加解密的例子；
+    7. [x509](./OpenSSL/openssl_x509.cc)---------->X509证书的例子；
+    8. [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL命令行的例子；
+14. [Server](./Server)---------->Linux Server的一些例子；
    1. [server_epoll](./Server/server_epoll.cc)---------->Epoll的例子；
    2. [server_poll](./Server/server_poll.cc)---------->Poll的例子；
    3. [server_select](./Server/server_select.cc)---------->Select的例子；
-14. [Thread](./Thread/)---------->基于std::thread实现的线程类，包括线程池；
+15. [Thread](./Thread/)---------->基于std::thread实现的线程类，包括线程池；
     1.  [Thread](./Thread/thread.hpp)---------->线程类；
     2.  [ThreadPool](./Thread/threadpool.hpp)---------->线程池；
