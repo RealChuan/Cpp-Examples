@@ -16,7 +16,8 @@
 5. [CountDownLatch](./CountDownLatch/countdownlatch.hpp)---------->使用std::mutex和std::condition_variable实现的简单倒计时门闩；
 6. [Curl](./Curl/)---------->curl的简单使用；
    1. [TcpClient](./Curl/tcpclient.hpp)---------->使用curl实现的简单TCP客户端；
-   2. [HttpClient](./Curl/httpclient.hpp)---------->使用curl实现的简单HTTP客户端；
+   2. [HttpClient](./Curl/httpclient.hpp)---------->使用curl实现的简单HTTP同步客户端；
+   3. [HttpClientAsync](./Curl/httpclient_async.hpp)---------->使用curl实现的简单HTTP异步客户端；
 7. [Breakpad](./Breakpad/breakpad.hpp)---------->Google Breakpad的简单封装；
 8. [DesignPattern](./DesignPattern)---------->设计模式的一些例子；
    1. [Factory](./DesignPattern/Factory/factory.hpp)---------->工厂模式；
