@@ -35,9 +35,10 @@
     3.  [hash](./OpenSSL/openssl_hash.cc)----------> SHA-256 example;
     4.  [hmac](./OpenSSL/openssl_hmac.cc)----------> HMAC example;
     5.  [pem](./OpenSSL/openssl_pem.cc)---------->PEM format example;
-    6.  [rsa](./OpenSSL/openssl_rsa.cc)---------->RSA encryption and decryption examples;
-    7.  [x509](./OpenSSL/openssl_x509.cc)---------->X509 certificate example;
-    8.  [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL command line example;
+    6.  [rsa](./OpenSSL/openssl_rsa.cc)---------->RSA encryption and decryption example;
+    7.  [sm4](./OpenSSL/openssl_sm4.cc)---------->SM4 encryption and decryption example;
+    8.  [x509](./OpenSSL/openssl_x509.cc)---------->X509 certificate example;
+    9.  [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL command line example;
 15. [Server](./Server)---------->Some examples of Linux Server;
 16. [server_epoll](./Server/server_epoll.cc)---------->Epoll example;
 17. [server_poll](./Server/server_poll.cc)----------> Poll example;
