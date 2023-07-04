@@ -4,6 +4,8 @@
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
 
+#include <gtest/gtest.h>
+
 // base64 encode
 auto base64_encode(const std::string &plain) -> std::string
 {
@@ -87,15 +89,24 @@ auto base64_decode(const std::string &base64) -> std::string
     return plain;
 }
 
+TEST(openssl_base64, base64)
+{
+    std::string plain = "hello world";
+    std::cout << "plain: " << plain << std::endl;
+
+    std::string base64 = base64_encode(plain);
+    std::cout << "base64: " << base64 << std::endl;
+
+    std::string decode = base64_decode(base64);
+    std::cout << "decode: " << decode << std::endl;
+
+    EXPECT_EQ(plain, decode);
+}
+
 auto main() -> int
 {
     openssl_version();
 
-    // base64 encode and decode
-    auto base64 = base64_encode("hello world");
-    std::cout << "base64: " << base64 << std::endl;
-    std::cout << "base64 decode: " << base64_decode(base64) << std::endl;
-    std::cout << std::endl;
-
-    return 0;
+    testing::InitGoogleTest();
+    return RUN_ALL_TESTS();
 }

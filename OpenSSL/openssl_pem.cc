@@ -2,6 +2,8 @@
 
 #include <openssl/pem.h>
 
+#include <gtest/gtest.h>
+
 // PEM encode
 auto pem_encode(const std::string &type, const std::string &data) -> std::string
 {
@@ -77,15 +79,23 @@ auto pem_decode(const std::string &type, const std::string &pem) -> std::string
     return data;
 }
 
+TEST(openssl_pem, pem)
+{
+    auto plain = "hello world";
+    auto type = "RSA PRIVATE KEY";
+
+    auto pem = pem_encode(type, plain);
+    std::cout << "pem: " << pem << std::endl;
+    auto pem_data = pem_decode(type, pem);
+    std::cout << "pem data: " << pem_data << std::endl;
+
+    EXPECT_EQ(plain, pem_data);
+}
+
 auto main() -> int
 {
     openssl_version();
 
-    // PEM encode and decode
-    auto pem = pem_encode("RSA PRIVATE KEY", "hello world");
-    std::cout << "pem: " << pem << std::endl;
-    auto pem_data = pem_decode("RSA PRIVATE KEY", pem);
-    std::cout << "pem data: " << pem_data << std::endl;
-
-    return 0;
+    testing::InitGoogleTest();
+    return RUN_ALL_TESTS();
 }

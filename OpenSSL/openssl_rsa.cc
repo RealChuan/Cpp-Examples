@@ -3,6 +3,8 @@
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 
+#include <gtest/gtest.h>
+
 // RSA generate key
 void rsa_generate_key(std::string &pub_key, std::string &pri_key)
 {
@@ -190,20 +192,25 @@ auto rsa_decrypt(const std::string &pri_key, const std::string &cipher) -> std::
     return plain;
 }
 
-auto main() -> int
+TEST(openssl_rsa, rsa_encrypt_decrypt)
 {
-    openssl_version();
-
-    // RSA encrypt and decrypt
+    auto plain = "hello world";
     std::string pub_key, pri_key;
     rsa_generate_key(pub_key, pri_key);
     std::cout << "rsa pub key: " << pub_key << std::endl;
     std::cout << "rsa pri key: " << pri_key << std::endl;
-    auto cipher = rsa_encrypt(pub_key, "hello world");
+    auto cipher = rsa_encrypt(pub_key, plain);
     std::cout << "rsa cipher: " << toHex(cipher) << std::endl;
-    auto plain = rsa_decrypt(pri_key, cipher);
-    std::cout << "rsa plain: " << plain << std::endl;
-    std::cout << std::endl;
+    auto plain2 = rsa_decrypt(pri_key, cipher);
+    std::cout << "rsa plain: " << plain2 << std::endl;
 
-    return 0;
+    EXPECT_EQ(plain, plain2);
+}
+
+auto main() -> int
+{
+    openssl_version();
+
+    testing::InitGoogleTest();
+    return RUN_ALL_TESTS();
 }
