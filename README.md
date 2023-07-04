@@ -36,8 +36,9 @@
     4. [hmac](./OpenSSL/openssl_hmac.cc)---------->HMAC的例子；
     5. [pem](./OpenSSL/openssl_pem.cc)---------->PEM格式的例子；
     6. [rsa](./OpenSSL/openssl_rsa.cc)---------->RSA加解密的例子；
-    7. [x509](./OpenSSL/openssl_x509.cc)---------->X509证书的例子；
-    8. [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL命令行的例子；
+    7. [sm4](./OpenSSL/openssl_sm4.cc)---------->SM4加解密的例子；
+    8. [x509](./OpenSSL/openssl_x509.cc)---------->X509证书的例子；
+    9. [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL命令行的例子；
 15. [Server](./Server)---------->Linux Server的一些例子；
    1. [server_epoll](./Server/server_epoll.cc)---------->Epoll的例子；
    2. [server_poll](./Server/server_poll.cc)---------->Poll的例子；

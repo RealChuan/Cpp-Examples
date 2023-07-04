@@ -5,10 +5,10 @@
 
 #include <random>
 
-// AES generate key and iv
-void aes_generate_key_iv(std::string &key, std::string &iv)
+// sm4 generate key and iv
+void sm4_generate_key_iv(std::string &key, std::string &iv)
 {
-    key.resize(32);
+    key.resize(16);
     iv.resize(16);
 
     std::random_device rd;
@@ -24,8 +24,8 @@ void aes_generate_key_iv(std::string &key, std::string &iv)
     }
 }
 
-// AES encrypt
-auto aes_encrypt(const std::string &key, const std::string &iv, const std::string &plain)
+// sm4 encrypt
+auto sm4_encrypt(const std::string &key, const std::string &iv, const std::string &plain)
     -> std::string
 {
     std::string cipher;
@@ -37,7 +37,7 @@ auto aes_encrypt(const std::string &key, const std::string &iv, const std::strin
     }
 
     if (EVP_EncryptInit_ex(ctx,
-                           EVP_aes_256_cbc(), // AES-256-CBC
+                           EVP_sm4_cbc(), // sm4-cbc
                            nullptr,
                            reinterpret_cast<const unsigned char *>(key.c_str()),
                            reinterpret_cast<const unsigned char *>(iv.c_str()))
@@ -65,7 +65,8 @@ auto aes_encrypt(const std::string &key, const std::string &iv, const std::strin
 
     int cipher_len = len;
 
-    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&cipher[0]) + len, &len) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&cipher[0]) + cipher_len, &len)
+        != 1) {
         openssl_error();
         EVP_CIPHER_CTX_free(ctx);
         return cipher;
@@ -79,8 +80,8 @@ auto aes_encrypt(const std::string &key, const std::string &iv, const std::strin
     return cipher;
 }
 
-// AES decrypt
-auto aes_decrypt(const std::string &key, const std::string &iv, const std::string &cipher)
+// sm4 decrypt
+auto sm4_decrypt(const std::string &key, const std::string &iv, const std::string &cipher)
     -> std::string
 {
     std::string plain;
@@ -92,7 +93,7 @@ auto aes_decrypt(const std::string &key, const std::string &iv, const std::strin
     }
 
     if (EVP_DecryptInit_ex(ctx,
-                           EVP_aes_256_cbc(), // AES-256-CBC
+                           EVP_sm4_cbc(), // sm4-cbc
                            nullptr,
                            reinterpret_cast<const unsigned char *>(key.c_str()),
                            reinterpret_cast<const unsigned char *>(iv.c_str()))
@@ -120,7 +121,8 @@ auto aes_decrypt(const std::string &key, const std::string &iv, const std::strin
 
     int plain_len = len;
 
-    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&plain[0]) + len, &len) != 1) {
+    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&plain[0]) + plain_len, &len)
+        != 1) {
         openssl_error();
         EVP_CIPHER_CTX_free(ctx);
         return plain;
@@ -134,24 +136,21 @@ auto aes_decrypt(const std::string &key, const std::string &iv, const std::strin
     return plain;
 }
 
-TEST(openssl_aes, openssl_aes)
+TEST(openssl_sm4, sm4_cbc)
 {
-    std::string plain = "hello world";
-
     std::string key;
     std::string iv;
-    aes_generate_key_iv(key, iv);
+    sm4_generate_key_iv(key, iv);
 
-    std::string cipher = aes_encrypt(key, iv, plain);
-    std::string result = aes_decrypt(key, iv, cipher);
+    std::string plain = "hello world";
+    std::string cipher = sm4_encrypt(key, iv, plain);
+    std::string plain2 = sm4_decrypt(key, iv, cipher);
 
-    EXPECT_EQ(plain, result);
+    EXPECT_EQ(plain, plain2);
 }
 
-auto main() -> int
+auto main(int argc, char *argv[]) -> int
 {
-    openssl_version();
-
-    testing::InitGoogleTest();
+    ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
