@@ -27,7 +27,7 @@
 9.  [Glog](./Glog/main.cc)---------->Google Glog的例子；
 10. [Icmp](./Icmp/icmp.hpp)---------->Linux ICMP协议的简单封装；
 11. [LinkedList](./LinkedList/linkedlist.hpp)---------->链表的相关操作，插入、移除、反转、打印；
-12. [MonitoringDirectory](./MonitoringDirectory/monitoring_directory.hpp)---------->Windows 监控目录中文件变化的简单封装；
+12. [MonitorDir](./MonitorDir/monitordir.hpp)---------->Windows和Linux下监控目录的简单封装；
 13. [Mutex](./Mutex/mutex.hpp)---------->使用std::atomic_flag实现的简单互斥锁和自旋锁；
 14. [OpenSSL](./OpenSSL)---------->OpenSSL的一些例子；
     1. [aes](./OpenSSL/openssl_aes.cc)---------->AES加解密的例子；
