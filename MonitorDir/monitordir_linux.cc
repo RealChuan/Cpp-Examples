@@ -148,7 +148,7 @@ MonitorDir::~MonitorDir()
     stop();
 }
 
-bool MonitorDir::start()
+auto MonitorDir::start() -> bool
 {
     if (m_isRunning) {
         std::cerr << "MonitorDir is already running" << std::endl;

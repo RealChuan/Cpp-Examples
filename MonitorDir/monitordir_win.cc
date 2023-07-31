@@ -29,9 +29,9 @@ public:
         : q_ptr(q)
     {}
 
-    ~MonitorDirPrivate() {}
+    ~MonitorDirPrivate() = default;
 
-    bool createHandle(const std::string &dir)
+    auto createHandle(const std::string &dir) -> bool
     {
         // 创建目录句柄
         directoryHandle = CreateFile(dir.c_str(),
@@ -51,7 +51,7 @@ public:
         return true;
     }
 
-    bool createEvent()
+    auto createEvent() -> bool
     {
         // 创建事件句柄，用于通知目录变化
         overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -192,7 +192,7 @@ MonitorDir::~MonitorDir()
     stop();
 }
 
-bool MonitorDir::start()
+auto MonitorDir::start() -> bool
 {
     if (m_isRunning.load()) {
         std::cerr << "MonitorDir is already running" << std::endl;
