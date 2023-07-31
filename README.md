@@ -24,10 +24,10 @@
    2. [MVC](./DesignPattern/MVC/model.hpp)---------->MVC模式；
    3. [Observer](./DesignPattern/Observer/observer.hpp)---------->观察者模式；
    4. [Singleton](./DesignPattern/Singleton/singleton.hpp)---------->单例模式；
-9.  [Glog](./Glog/main.cc)---------->Google Glog的例子；
+9. [Glog](./Glog/main.cc)---------->Google Glog的例子；
 10. [Icmp](./Icmp/icmp.hpp)---------->Linux ICMP协议的简单封装；
 11. [LinkedList](./LinkedList/linkedlist.hpp)---------->链表的相关操作，插入、移除、反转、打印；
-12. [MonitorDir](./MonitorDir/monitordir.hpp)---------->Windows和Linux下监控目录的简单封装；
+12. [MonitorDir](./MonitorDir/monitordir.hpp)---------->Windows(`ReadDirectoryChangesW`)，MacOS(`FSEvents`)和Linux(`inotify`)目录监控的简单例子；
 13. [Mutex](./Mutex/mutex.hpp)---------->使用std::atomic_flag实现的简单互斥锁和自旋锁；
 14. [OpenSSL](./OpenSSL)---------->OpenSSL的一些例子；
     1. [aes](./OpenSSL/openssl_aes.cc)---------->AES加解密的例子；
@@ -40,9 +40,9 @@
     8. [x509](./OpenSSL/openssl_x509.cc)---------->X509证书的例子；
     9. [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL命令行的例子；
 15. [Server](./Server)---------->Linux Server的一些例子；
-   1. [server_epoll](./Server/server_epoll.cc)---------->Epoll的例子；
-   2. [server_poll](./Server/server_poll.cc)---------->Poll的例子；
-   3. [server_select](./Server/server_select.cc)---------->Select的例子；
-16. [Thread](./Thread/)---------->基于std::thread实现的线程类，包括线程池；
-    1.  [Thread](./Thread/thread.hpp)---------->线程类；
-    2.  [ThreadPool](./Thread/threadpool.hpp)---------->线程池；
+16. [server_epoll](./Server/server_epoll.cc)---------->Epoll的例子；
+17. [server_poll](./Server/server_poll.cc)---------->Poll的例子；
+18. [server_select](./Server/server_select.cc)---------->Select的例子；
+19. [Thread](./Thread/)---------->基于std::thread实现的线程类，包括线程池；
+    1. [Thread](./Thread/thread.hpp)---------->线程类；
+    2. [ThreadPool](./Thread/threadpool.hpp)---------->线程池；
