@@ -23,43 +23,45 @@ public:
     {
         //auto *monitorDir = static_cast<MonitorDirPrivate *>(clientCallBackInfo);
         char **paths = static_cast<char **>(eventPaths);
+        std::string fileEvent;
         for (size_t i = 0; i < numEvents; ++i) {
-            std::string path = paths[i];
             if ((eventFlags[i] & kFSEventStreamEventFlagItemCreated) != 0U) {
-                std::cout << "Created: " << path << std::endl;
+                fileEvent = "Created: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemRemoved) != 0U) {
-                std::cout << "Removed: " << path << std::endl;
+                fileEvent = "Removed: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemRenamed) != 0U) {
-                std::cout << "Renamed: " << path << std::endl;
+                fileEvent = "Renamed: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemModified) != 0U) {
-                std::cout << "Modified: " << path << std::endl;
+                fileEvent = "Modified: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemInodeMetaMod) != 0U) {
-                std::cout << "InodeMetaMod: " << path << std::endl;
+                fileEvent = "InodeMetaMod: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemChangeOwner) != 0U) {
-                std::cout << "ChangeOwner: " << path << std::endl;
+                fileEvent = "ChangeOwner: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemXattrMod) != 0U) {
-                std::cout << "XattrMod: " << path << std::endl;
+                fileEvent = "XattrMod: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsFile) != 0U) {
-                std::cout << "IsFile: " << path << std::endl;
+                fileEvent = "IsFile: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsDir) != 0U) {
-                std::cout << "IsDir: " << path << std::endl;
+                fileEvent = "IsDir: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsSymlink) != 0U) {
-                std::cout << "IsSymlink: " << path << std::endl;
+                fileEvent = "IsSymlink: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagOwnEvent) != 0U) {
-                std::cout << "OwnEvent: " << path << std::endl;
+                fileEvent = "OwnEvent: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsHardlink) != 0U) {
-                std::cout << "IsHardlink: " << path << std::endl;
+                fileEvent = "IsHardlink: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsLastHardlink) != 0U) {
-                std::cout << "IsLastHardlink: " << path << std::endl;
+                fileEvent = "IsLastHardlink: ";
             } else if ((eventFlags[i] & kFSEventStreamEventFlagItemCloned) != 0U) {
-                std::cout << "Cloned: " << path << std::endl;
+                fileEvent = "Cloned: ";
             } else {
-                std::cout << "Unknown: " << path << std::endl;
+                fileEvent = "Unknown: ";
             }
+            fileEvent += paths[i];
+            std::cout << fileEvent << std::endl;
         }
     }
 
-    void monitor(const std::string &dir)
+    void monitor()
     {
         std::cout << "addWatch: " << dir << std::endl;
         CFStringRef pathToWatch = CFStringCreateWithCString(kCFAllocatorDefault,
@@ -90,18 +92,22 @@ public:
 
     void stop()
     {
+        if (nullptr == runLoop) {
+            return;
+        }
         if (CFRunLoopIsWaiting(runLoop) == 0U) {
             CFRunLoopWakeUp(runLoop);
         }
         CFRunLoopStop(runLoop);
     }
 
-    void run(const std::string &dir) { monitor(dir); }
+    void run() { monitor(); }
 
     MonitorDir *q_ptr;
 
-    CFRunLoopRef runLoop;
+    CFRunLoopRef runLoop = nullptr;
 
+    std::filesystem::path dir;
     std::thread monitorThread;
 };
 
@@ -109,7 +115,10 @@ MonitorDir::MonitorDir(const std::filesystem::path &dir)
     : d_ptr(std::make_unique<MonitorDirPrivate>(this))
     , m_dir(dir)
     , m_isRunning(false)
-{}
+{
+    assert(std::filesystem::is_directory(dir) && std::filesystem::exists(dir));
+    d_ptr->dir = dir;
+}
 
 MonitorDir::~MonitorDir()
 {
@@ -125,7 +134,7 @@ bool MonitorDir::start()
 
     m_isRunning.store(true);
     d_ptr->monitorThread = std::thread([this] {
-        d_ptr->run(m_dir.string());
+        d_ptr->run();
         m_isRunning.store(false);
     });
 

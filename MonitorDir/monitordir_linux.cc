@@ -1,5 +1,6 @@
 #include "monitordir.hpp"
 
+#include <cassert>
 #include <fcntl.h>
 #include <iostream>
 #include <sys/inotify.h>
@@ -35,7 +36,7 @@ public:
         }
     }
 
-    auto addWatch(const std::string &dir) -> bool
+    auto addWatch() -> bool
     {
         // 添加监控目录
         watchFd = inotify_add_watch(inotifyFd, dir.c_str(), IN_ALL_EVENTS);
@@ -69,53 +70,56 @@ public:
             return;
         }
 
+        std::string fileEvent;
         for (char *ptr = buf; ptr < buf + len; ptr += sizeof(struct inotify_event) + event->len) {
             event = reinterpret_cast<struct inotify_event *>(ptr);
             if ((event->mask & IN_CREATE) != 0U) {
-                std::cout << "IN_CREATE: " << event->name << std::endl;
+                fileEvent = "IN_CREATE: ";
             } else if ((event->mask & IN_DELETE) != 0U) {
-                std::cout << "IN_DELETE: " << event->name << std::endl;
+                fileEvent = "IN_DELETE: ";
             } else if ((event->mask & IN_MODIFY) != 0U) {
-                std::cout << "IN_MODIFY: " << event->name << std::endl;
+                fileEvent = "IN_MODIFY: ";
             } else if ((event->mask & IN_MOVED_FROM) != 0U) {
-                std::cout << "IN_MOVED_FROM: " << event->name << std::endl;
+                fileEvent = "IN_MOVED_FROM: ";
             } else if ((event->mask & IN_MOVED_TO) != 0U) {
-                std::cout << "IN_MOVED_TO: " << event->name << std::endl;
+                fileEvent = "IN_MOVED_TO: ";
             } else if ((event->mask & IN_CLOSE_WRITE) != 0U) {
-                std::cout << "IN_CLOSE_WRITE: " << event->name << std::endl;
+                fileEvent = "IN_CLOSE_WRITE: ";
             } else if ((event->mask & IN_CLOSE_NOWRITE) != 0U) {
-                std::cout << "IN_CLOSE_NOWRITE: " << event->name << std::endl;
+                fileEvent = "IN_CLOSE_NOWRITE: ";
             } else if ((event->mask & IN_ACCESS) != 0U) {
-                std::cout << "IN_ACCESS: " << event->name << std::endl;
+                fileEvent = "IN_ACCESS: ";
             } else if ((event->mask & IN_ATTRIB) != 0U) {
-                std::cout << "IN_ATTRIB: " << event->name << std::endl;
+                fileEvent = "IN_ATTRIB: ";
             } else if ((event->mask & IN_OPEN) != 0U) {
-                std::cout << "IN_OPEN: " << event->name << std::endl;
+                fileEvent = "IN_OPEN: ";
             } else if ((event->mask & IN_DELETE_SELF) != 0U) {
-                std::cout << "IN_DELETE_SELF: " << event->name << std::endl;
+                fileEvent = "IN_DELETE_SELF: ";
             } else if ((event->mask & IN_MOVE_SELF) != 0U) {
-                std::cout << "IN_MOVE_SELF: " << event->name << std::endl;
+                fileEvent = "IN_MOVE_SELF: ";
             } else if ((event->mask & IN_UNMOUNT) != 0U) {
-                std::cout << "IN_UNMOUNT: " << event->name << std::endl;
+                fileEvent = "IN_UNMOUNT: ";
             } else if ((event->mask & IN_Q_OVERFLOW) != 0U) {
-                std::cout << "IN_Q_OVERFLOW: " << event->name << std::endl;
+                fileEvent = "IN_Q_OVERFLOW: ";
             } else if ((event->mask & IN_IGNORED) != 0U) {
-                std::cout << "IN_IGNORED: " << event->name << std::endl;
+                fileEvent = "IN_IGNORED: ";
             } else if ((event->mask & IN_ISDIR) != 0U) {
-                std::cout << "IN_ISDIR: " << event->name << std::endl;
+                fileEvent = "IN_ISDIR: ";
             } else {
-                std::cout << "UNKNOWN: " << event->name << std::endl;
+                fileEvent = "UNKNOWN: ";
             }
+            fileEvent += event->name;
+            std::cout << fileEvent << std::endl;
         }
     }
 
-    void run(const std::string &dir)
+    void run()
     {
         if (!createFd()) {
             return;
         }
 
-        if (!addWatch(dir)) {
+        if (!addWatch()) {
             closeFd();
             return;
         }
@@ -133,6 +137,7 @@ public:
     int inotifyFd = -1;
     int watchFd = -1;
 
+    std::filesystem::path dir;
     std::atomic_bool isRunning;
     std::thread monitorThread;
 };
@@ -141,7 +146,10 @@ MonitorDir::MonitorDir(const std::filesystem::path &dir)
     : d_ptr(std::make_unique<MonitorDirPrivate>(this))
     , m_dir(dir)
     , m_isRunning(false)
-{}
+{
+    assert(std::filesystem::is_directory(dir) && std::filesystem::exists(dir));
+    d_ptr->dir = dir;
+}
 
 MonitorDir::~MonitorDir()
 {
@@ -157,7 +165,7 @@ auto MonitorDir::start() -> bool
 
     m_isRunning.store(true);
     d_ptr->monitorThread = std::thread([this] {
-        d_ptr->run(m_dir.string());
+        d_ptr->run();
         m_isRunning.store(false);
     });
 

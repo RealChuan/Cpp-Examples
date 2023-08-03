@@ -1,5 +1,6 @@
 #include "monitordir.hpp"
 
+#include <cassert>
 #include <condition_variable>
 #include <iostream>
 #include <thread>
@@ -31,10 +32,10 @@ public:
 
     ~MonitorDirPrivate() = default;
 
-    auto createHandle(const std::string &dir) -> bool
+    auto createHandle() -> bool
     {
         // 创建目录句柄
-        directoryHandle = CreateFile(dir.c_str(),
+        directoryHandle = CreateFile(dir.string().c_str(),
                                      FILE_LIST_DIRECTORY,
                                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                      NULL,
@@ -79,7 +80,7 @@ public:
         }
     }
 
-    void monitor(const std::string &dir)
+    void monitor()
     {
         char notifyBuffer[BUFSIZ] = {0};
         DWORD bytesReturned = 0;
@@ -121,7 +122,7 @@ public:
         // 通知目录变化
         std::string fileEvent;
         PFILE_NOTIFY_INFORMATION notifyInfo = (PFILE_NOTIFY_INFORMATION) notifyBuffer;
-        do {
+        while (isRunning.load()) {
             std::wstring fileName(notifyInfo->FileName,
                                   notifyInfo->FileNameLength / sizeof(wchar_t));
             std::string fileNameUtf8 = utf8_encode(fileName);
@@ -136,19 +137,21 @@ public:
             case FILE_ACTION_RENAMED_NEW_NAME:
                 fileEvent = "renamed new name: " + fileNameUtf8;
                 break;
-            default: break;
+            default: fileEvent = "unknown: " + fileNameUtf8; break;
             }
+            std::cout << fileEvent << std::endl;
 
+            if (notifyInfo->NextEntryOffset == 0) {
+                break;
+            }
             notifyInfo = (PFILE_NOTIFY_INFORMATION) ((LPBYTE) notifyInfo
                                                      + notifyInfo->NextEntryOffset);
-        } while (notifyInfo->NextEntryOffset != 0);
-
-        std::cout << fileEvent << std::endl;
+        }
     }
 
-    void run(const std::string &dir)
+    void run()
     {
-        if (!createHandle(dir)) {
+        if (!createHandle()) {
             return;
         }
         if (!createEvent()) {
@@ -157,18 +160,13 @@ public:
         }
         isRunning.store(true);
         while (isRunning.load()) {
-            monitor(dir);
+            monitor();
         }
         closeEvent();
         closeHandle();
     }
 
     MonitorDir *q_ptr;
-
-    std::string fileExtension;
-    std::string filePattern;
-    std::string filePatternRegex;
-    std::string filePatternRegexFlags;
 
     DWORD filters = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME
                     | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE
@@ -177,6 +175,7 @@ public:
     HANDLE directoryHandle = INVALID_HANDLE_VALUE;
     OVERLAPPED overlapped;
 
+    std::filesystem::path dir;
     std::atomic_bool isRunning;
     std::thread monitorThread;
 };
@@ -185,7 +184,10 @@ MonitorDir::MonitorDir(const std::filesystem::path &dir)
     : d_ptr(std::make_unique<MonitorDirPrivate>(this))
     , m_dir(dir)
     , m_isRunning(false)
-{}
+{
+    assert(std::filesystem::is_directory(dir) && std::filesystem::exists(dir));
+    d_ptr->dir = dir;
+}
 
 MonitorDir::~MonitorDir()
 {
@@ -200,7 +202,7 @@ auto MonitorDir::start() -> bool
     }
     m_isRunning.store(true);
     d_ptr->monitorThread = std::thread([this]() {
-        d_ptr->run(m_dir.string());
+        d_ptr->run();
         m_isRunning.store(false);
     });
     return true;
