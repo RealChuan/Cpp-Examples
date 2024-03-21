@@ -7,7 +7,7 @@
 
 // generate random vector
 template<typename T>
-std::vector<T> generate_random_vector(int size)
+auto generate_random_vector(int size) -> std::vector<T>
 {
     std::vector<T> v;
     std::random_device rd;
@@ -70,9 +70,9 @@ void quick_sort(std::vector<T> &v, int left, int right)
     if (left >= right) { // 如果只有一个元素，就不需要排序
         return;
     }
-    int i = left;                        // 保存左边界
-    int j = right;                       // 保存右边界
-    T pivot = v[left];                   // 保存基准元素
+    int i = left;      // 保存左边界
+    int j = right;     // 保存右边界
+    T pivot = v[left]; // 保存基准元素
     while (i < j) {
         while (i < j && v[j] >= pivot) { // 从右边开始找到第一个小于基准元素的元素
             --j;

@@ -8,7 +8,7 @@ class BinaryTree
 {
 public:
     BinaryTree() = default;
-    BinaryTree(const std::vector<T> &data);
+    explicit BinaryTree(const std::vector<T> &data);
     BinaryTree(const BinaryTree &other);
     BinaryTree(BinaryTree &&other) noexcept;
     auto operator=(const BinaryTree &other) -> BinaryTree &;
@@ -39,8 +39,8 @@ private:
         Node *left;
         Node *right;
 
-        Node(const T &data);
-        Node(T &&data) noexcept;
+        explicit Node(const T &data);
+        explicit Node(T &&data) noexcept;
     };
 
     Node *root = nullptr;
@@ -107,37 +107,38 @@ auto BinaryTree<T>::operator==(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return true;
-    } else if (root == nullptr || other.root == nullptr) {
+    }
+    if (root == nullptr || other.root == nullptr) {
         return false;
-    } else {
-        std::vector<typename BinaryTree<T>::Node *> nodes1;
-        std::vector<typename BinaryTree<T>::Node *> nodes2;
-        nodes1.push_back(root);
-        nodes2.push_back(other.root);
-        while (!nodes1.empty() && !nodes2.empty()) {
-            typename BinaryTree<T>::Node *current1 = nodes1.back();
-            nodes1.pop_back();
-            typename BinaryTree<T>::Node *current2 = nodes2.back();
-            nodes2.pop_back();
-            if (current1->data != current2->data) { // 比较当前节点的值
-                return false;
-            }
-            if (current1->left && current2->left) { // 比较左子节点的值
-                nodes1.push_back(current1->left);
-                nodes2.push_back(current2->left);
-            } else if (current1->left || current2->left) {
-                // 如果一个有左子节点，一个没有左子节点，就返回false
-                return false;
-            }
-            if (current1->right && current2->right) { // 比较右子节点的值
-                nodes1.push_back(current1->right);
-                nodes2.push_back(current2->right);
-            } else if (current1->right || current2->right) {
-                // 如果一个有右子节点，一个没有右子节点，就返回false
-                return false;
-            }
+    }
+    std::vector<typename BinaryTree<T>::Node *> nodes1;
+    std::vector<typename BinaryTree<T>::Node *> nodes2;
+    nodes1.push_back(root);
+    nodes2.push_back(other.root);
+    while (!nodes1.empty() && !nodes2.empty()) {
+        typename BinaryTree<T>::Node *current1 = nodes1.back();
+        nodes1.pop_back();
+        typename BinaryTree<T>::Node *current2 = nodes2.back();
+        nodes2.pop_back();
+        if (current1->data != current2->data) { // 比较当前节点的值
+            return false;
+        }
+        if (current1->left && current2->left) { // 比较左子节点的值
+            nodes1.push_back(current1->left);
+            nodes2.push_back(current2->left);
+        } else if (current1->left || current2->left) {
+            // 如果一个有左子节点，一个没有左子节点，就返回false
+            return false;
+        }
+        if (current1->right && current2->right) { // 比较右子节点的值
+            nodes1.push_back(current1->right);
+            nodes2.push_back(current2->right);
+        } else if (current1->right || current2->right) {
+            // 如果一个有右子节点，一个没有右子节点，就返回false
+            return false;
         }
     }
+
     return true;
 }
 
@@ -152,42 +153,45 @@ auto BinaryTree<T>::operator<(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return false;
-    } else if (root == nullptr) {
+    }
+    if (root == nullptr) {
         return true;
-    } else if (other.root == nullptr) {
+    }
+    if (other.root == nullptr) {
         return false;
-    } else {
-        std::vector<typename BinaryTree<T>::Node *> nodes1;
-        std::vector<typename BinaryTree<T>::Node *> nodes2;
-        nodes1.push_back(root);
-        nodes2.push_back(other.root);
-        while (!nodes1.empty() && !nodes2.empty()) {
-            typename BinaryTree<T>::Node *current1 = nodes1.back();
-            nodes1.pop_back();
-            typename BinaryTree<T>::Node *current2 = nodes2.back();
-            nodes2.pop_back();
-            if (current1->data < current2->data) {        // 比较当前节点的值
-                return true;
-            } else if (current1->data > current2->data) { // 比较当前节点的值
-                return false;
-            }
-            if (current1->left && current2->left) { // 比较左子节点的值
-                nodes1.push_back(current1->left);
-                nodes2.push_back(current2->left);
-            } else if (current1->left || current2->left) {
-                // 如果一个有左子节点，一个没有左子节点，就返回false
-                return false;
-            }
-            if (current1->right && current2->right) {
-                // 比较右子节点的值
-                nodes1.push_back(current1->right);
-                nodes2.push_back(current2->right);
-            } else if (current1->right || current2->right) {
-                // 如果一个有右子节点，一个没有右子节点，就返回false
-                return false;
-            }
+    }
+    std::vector<typename BinaryTree<T>::Node *> nodes1;
+    std::vector<typename BinaryTree<T>::Node *> nodes2;
+    nodes1.push_back(root);
+    nodes2.push_back(other.root);
+    while (!nodes1.empty() && !nodes2.empty()) {
+        typename BinaryTree<T>::Node *current1 = nodes1.back();
+        nodes1.pop_back();
+        typename BinaryTree<T>::Node *current2 = nodes2.back();
+        nodes2.pop_back();
+        if (current1->data < current2->data) { // 比较当前节点的值
+            return true;
+        }
+        if (current1->data > current2->data) { // 比较当前节点的值
+            return false;
+        }
+        if (current1->left && current2->left) { // 比较左子节点的值
+            nodes1.push_back(current1->left);
+            nodes2.push_back(current2->left);
+        } else if (current1->left || current2->left) {
+            // 如果一个有左子节点，一个没有左子节点，就返回false
+            return false;
+        }
+        if (current1->right && current2->right) {
+            // 比较右子节点的值
+            nodes1.push_back(current1->right);
+            nodes2.push_back(current2->right);
+        } else if (current1->right || current2->right) {
+            // 如果一个有右子节点，一个没有右子节点，就返回false
+            return false;
         }
     }
+
     return false;
 }
 
@@ -196,41 +200,44 @@ auto BinaryTree<T>::operator>(const BinaryTree &other) const -> bool
 {
     if (root == nullptr && other.root == nullptr) {
         return false;
-    } else if (root == nullptr) {
+    }
+    if (root == nullptr) {
         return false;
-    } else if (other.root == nullptr) {
+    }
+    if (other.root == nullptr) {
         return true;
-    } else {
-        std::vector<typename BinaryTree<T>::Node *> nodes1;
-        std::vector<typename BinaryTree<T>::Node *> nodes2;
-        nodes1.push_back(root);
-        nodes2.push_back(other.root);
-        while (!nodes1.empty() && !nodes2.empty()) {
-            typename BinaryTree<T>::Node *current1 = nodes1.back();
-            nodes1.pop_back();
-            typename BinaryTree<T>::Node *current2 = nodes2.back();
-            nodes2.pop_back();
-            if (current1->data > current2->data) {        // 比较当前节点的值
-                return true;
-            } else if (current1->data < current2->data) { // 比较当前节点的值
-                return false;
-            }
-            if (current1->left && current2->left) { // 比较左子节点的值
-                nodes1.push_back(current1->left);
-                nodes2.push_back(current2->left);
-            } else if (current1->left || current2->left) {
-                // 如果一个有左子节点，一个没有左子节点，就返回false
-                return false;
-            }
-            if (current1->right && current2->right) { // 比较右子节点的值
-                nodes1.push_back(current1->right);
-                nodes2.push_back(current2->right);
-            } else if (current1->right || current2->right) {
-                // 如果一个有右子节点，一个没有右子节点，就返回false
-                return false;
-            }
+    }
+    std::vector<typename BinaryTree<T>::Node *> nodes1;
+    std::vector<typename BinaryTree<T>::Node *> nodes2;
+    nodes1.push_back(root);
+    nodes2.push_back(other.root);
+    while (!nodes1.empty() && !nodes2.empty()) {
+        typename BinaryTree<T>::Node *current1 = nodes1.back();
+        nodes1.pop_back();
+        typename BinaryTree<T>::Node *current2 = nodes2.back();
+        nodes2.pop_back();
+        if (current1->data > current2->data) { // 比较当前节点的值
+            return true;
+        }
+        if (current1->data < current2->data) { // 比较当前节点的值
+            return false;
+        }
+        if (current1->left && current2->left) { // 比较左子节点的值
+            nodes1.push_back(current1->left);
+            nodes2.push_back(current2->left);
+        } else if (current1->left || current2->left) {
+            // 如果一个有左子节点，一个没有左子节点，就返回false
+            return false;
+        }
+        if (current1->right && current2->right) { // 比较右子节点的值
+            nodes1.push_back(current1->right);
+            nodes2.push_back(current2->right);
+        } else if (current1->right || current2->right) {
+            // 如果一个有右子节点，一个没有右子节点，就返回false
+            return false;
         }
     }
+
     return false;
 }
 
@@ -424,7 +431,7 @@ void BinaryTree<T>::preorderTraversal() const
             stack.push_back(current->left);
         }
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 template<typename T>
@@ -449,7 +456,7 @@ void BinaryTree<T>::inorderTraversal() const
         std::cout << current->data << " ";
         current = current->right;
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 template<typename T>
@@ -480,7 +487,7 @@ void BinaryTree<T>::postorderTraversal() const
             current = nullptr;
         }
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 template<typename T>
@@ -503,7 +510,7 @@ void BinaryTree<T>::levelorderTraversal() const
             queue.push_back(current->right);
         }
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 template<typename T>

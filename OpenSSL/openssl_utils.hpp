@@ -13,17 +13,17 @@
 // openssl version
 void openssl_version()
 {
-    std::cout << "openssl version: " << OpenSSL_version(OPENSSL_VERSION) << std::endl;
-    std::cout << "openssl version number: " << OpenSSL_version_num() << std::endl;
+    std::cout << "openssl version: " << OpenSSL_version(OPENSSL_VERSION) << '\n';
+    std::cout << "openssl version number: " << OpenSSL_version_num() << '\n';
 }
 
 // openssl error
 void openssl_error()
 {
     auto error = ERR_get_error();
-    std::cout << "openssl error: " << ERR_error_string(error, nullptr) << std::endl;
-    std::cout << "openssl error reason: " << ERR_reason_error_string(error) << std::endl;
-    std::cout << "openssl error library: " << ERR_lib_error_string(error) << std::endl;
+    std::cout << "openssl error: " << ERR_error_string(error, nullptr) << '\n';
+    std::cout << "openssl error reason: " << ERR_reason_error_string(error) << '\n';
+    std::cout << "openssl error library: " << ERR_lib_error_string(error) << '\n';
 }
 
 auto toHex(const std::string &str) -> std::string

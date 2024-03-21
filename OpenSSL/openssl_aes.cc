@@ -53,7 +53,7 @@ auto aes_encrypt(const std::string &key, const std::string &iv, const std::strin
     cipher.resize(max_cipher_len);
 
     if (EVP_EncryptUpdate(ctx,
-                          reinterpret_cast<unsigned char *>(&cipher[0]),
+                          reinterpret_cast<unsigned char *>(cipher.data()),
                           &len,
                           reinterpret_cast<const unsigned char *>(plain.c_str()),
                           plain_len)
@@ -65,7 +65,8 @@ auto aes_encrypt(const std::string &key, const std::string &iv, const std::strin
 
     int cipher_len = len;
 
-    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&cipher[0]) + len, &len) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(cipher.data()) + len, &len)
+        != 1) {
         openssl_error();
         EVP_CIPHER_CTX_free(ctx);
         return cipher;
@@ -108,7 +109,7 @@ auto aes_decrypt(const std::string &key, const std::string &iv, const std::strin
     plain.resize(max_plain_len);
 
     if (EVP_DecryptUpdate(ctx,
-                          reinterpret_cast<unsigned char *>(&plain[0]),
+                          reinterpret_cast<unsigned char *>(plain.data()),
                           &len,
                           reinterpret_cast<const unsigned char *>(cipher.c_str()),
                           cipher_len)
@@ -120,7 +121,7 @@ auto aes_decrypt(const std::string &key, const std::string &iv, const std::strin
 
     int plain_len = len;
 
-    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(&plain[0]) + len, &len) != 1) {
+    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char *>(plain.data()) + len, &len) != 1) {
         openssl_error();
         EVP_CIPHER_CTX_free(ctx);
         return plain;

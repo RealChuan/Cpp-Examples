@@ -54,7 +54,7 @@ void rsa_generate_key(std::string &pub_key, std::string &pri_key)
     int len = BIO_pending(bio);
     pub_key.resize(len);
 
-    if (BIO_read(bio, &pub_key[0], len) != len) {
+    if (BIO_read(bio, pub_key.data(), len) != len) {
         openssl_error();
         BIO_free(bio);
         BN_free(e);
@@ -83,7 +83,7 @@ void rsa_generate_key(std::string &pub_key, std::string &pri_key)
     len = BIO_pending(bio);
     pri_key.resize(len);
 
-    if (BIO_read(bio, &pri_key[0], len) != len) {
+    if (BIO_read(bio, pri_key.data(), len) != len) {
         openssl_error();
         BIO_free(bio);
         BN_free(e);
@@ -126,7 +126,7 @@ auto rsa_encrypt(const std::string &pub_key, const std::string &plain) -> std::s
 
     int len = RSA_public_encrypt(static_cast<int>(plain.size()),
                                  reinterpret_cast<const unsigned char *>(plain.c_str()),
-                                 reinterpret_cast<unsigned char *>(&cipher[0]),
+                                 reinterpret_cast<unsigned char *>(cipher.data()),
                                  rsa,
                                  RSA_PKCS1_PADDING);
     if (len == -1) {
@@ -174,7 +174,7 @@ auto rsa_decrypt(const std::string &pri_key, const std::string &cipher) -> std::
 
     int len = RSA_private_decrypt(static_cast<int>(cipher.size()),
                                   reinterpret_cast<const unsigned char *>(cipher.c_str()),
-                                  reinterpret_cast<unsigned char *>(&plain[0]),
+                                  reinterpret_cast<unsigned char *>(plain.data()),
                                   rsa,
                                   RSA_PKCS1_PADDING);
     if (len == -1) {
@@ -194,15 +194,16 @@ auto rsa_decrypt(const std::string &pri_key, const std::string &cipher) -> std::
 
 TEST(openssl_rsa, rsa_encrypt_decrypt)
 {
-    auto plain = "hello world";
-    std::string pub_key, pri_key;
+    const auto *plain = "hello world";
+    std::string pub_key;
+    std::string pri_key;
     rsa_generate_key(pub_key, pri_key);
-    std::cout << "rsa pub key: " << pub_key << std::endl;
-    std::cout << "rsa pri key: " << pri_key << std::endl;
+    std::cout << "rsa pub key: " << pub_key << '\n';
+    std::cout << "rsa pri key: " << pri_key << '\n';
     auto cipher = rsa_encrypt(pub_key, plain);
-    std::cout << "rsa cipher: " << toHex(cipher) << std::endl;
+    std::cout << "rsa cipher: " << toHex(cipher) << '\n';
     auto plain2 = rsa_decrypt(pri_key, cipher);
-    std::cout << "rsa plain: " << plain2 << std::endl;
+    std::cout << "rsa plain: " << plain2 << '\n';
 
     EXPECT_EQ(plain, plain2);
 }

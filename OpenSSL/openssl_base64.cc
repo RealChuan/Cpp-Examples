@@ -92,13 +92,13 @@ auto base64_decode(const std::string &base64) -> std::string
 TEST(openssl_base64, base64)
 {
     std::string plain = "hello world";
-    std::cout << "plain: " << plain << std::endl;
+    std::cout << "plain: " << plain << '\n';
 
     std::string base64 = base64_encode(plain);
-    std::cout << "base64: " << base64 << std::endl;
+    std::cout << "base64: " << base64 << '\n';
 
     std::string decode = base64_decode(base64);
-    std::cout << "decode: " << decode << std::endl;
+    std::cout << "decode: " << decode << '\n';
 
     EXPECT_EQ(plain, decode);
 }
