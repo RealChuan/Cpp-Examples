@@ -9,11 +9,11 @@ class LinkedList
 {
 public:
     LinkedList()
-        : head_(nullptr)
+        : m_head(nullptr)
     {}
     ~LinkedList()
     {
-        while (head_) {
+        while (m_head) {
             pop_front();
         }
     }
@@ -21,25 +21,25 @@ public:
     void push_front(const T &data)
     {
         Node *const new_node = new Node(data);
-        new_node->next = head_;
-        head_ = new_node;
+        new_node->next = m_head;
+        m_head = new_node;
     }
 
     void pop_front()
     {
-        Node *const old_head = head_;
-        head_ = head_->next;
+        Node *const old_head = m_head;
+        m_head = m_head->next;
         delete old_head;
     }
 
-    auto front() -> T & { return head_->data; }
+    auto front() -> T & { return m_head->data; }
 
-    auto empty() -> bool { return head_ == nullptr; }
+    auto empty() -> bool { return m_head == nullptr; }
 
-    size_t size()
+    auto size() -> size_t
     {
         size_t size = 0;
-        Node *node = head_;
+        Node *node = m_head;
         while (node) {
             ++size;
             node = node->next;
@@ -49,31 +49,31 @@ public:
 
     void reverse()
     {
-        Node *prev = nullptr;        // 前一个节点
-        Node *curr = head_;          // 当前节点
+        Node *prev = nullptr; // 前一个节点
+        Node *curr = m_head;  // 当前节点
         while (curr) {
             Node *next = curr->next; // 下一个节点
             curr->next = prev;       // 当前节点指向前一个节点
             prev = curr;             // 前一个节点指向当前节点
             curr = next;             // 当前节点指向下一个节点
         }
-        head_ = prev;                // 头节点指向前一个节点
+        m_head = prev; // 头节点指向前一个节点
     }
 
     void print()
     {
-        Node *node = head_;
+        Node *node = m_head;
         while (node) {
             std::cout << node->data << " ";
             node = node->next;
         }
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 
 private:
     struct Node
     {
-        Node(const T &data)
+        explicit Node(const T &data)
             : data(data)
             , next(nullptr)
         {}
@@ -82,5 +82,5 @@ private:
         Node *next;
     };
 
-    Node *head_;
+    Node *m_head;
 };

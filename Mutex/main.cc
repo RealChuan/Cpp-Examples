@@ -13,7 +13,7 @@ public:
     {
         while (count < 30) {
             MutexLocker locker(&m_mutex);
-            std::cout << std::this_thread::get_id() << ": " << ++count << std::endl;
+            std::cout << std::this_thread::get_id() << ": " << ++count << '\n';
         }
     }
 };
@@ -24,8 +24,8 @@ auto main(int argc, char *argv[]) -> int
     (void) argv;
 
     TestMutex test;
-    std::thread t1(std::bind(&TestMutex::run, &test));
-    std::thread t2(std::bind(&TestMutex::run, &test));
+    std::thread t1([ObjectPtr = &test] { ObjectPtr->run(); });
+    std::thread t2([ObjectPtr = &test] { ObjectPtr->run(); });
     t1.join();
     t2.join();
 

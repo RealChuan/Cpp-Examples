@@ -35,7 +35,7 @@ TEST(LinkedList, front)
     linked_list.push_front(4);
     linked_list.push_front(5);
     linked_list.print();
-    std::cout << linked_list.front() << std::endl;
+    std::cout << linked_list.front() << '\n';
 }
 
 TEST(LinkedList, empty)
@@ -86,7 +86,7 @@ TEST(LinkedList, print)
     linked_list.print();
 }
 
-int main(int argc, char *argv[])
+auto main(int argc, char *argv[]) -> int
 {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
