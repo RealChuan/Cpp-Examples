@@ -3,46 +3,48 @@
 -   [Simplified Chinese](README.md)
 -   [English](README.en.md)
 
-## Some obsolete C/C++ code
+## Some outdated C/C++ code
 
-1.  [Algorithm](./Algorithm/)
-    1.  [Search](./Algorithm/Search/search.hpp)----------> Implementation of various search algorithms, as well as unit testing and performance testing based on Google Benchmark;
-        1.  [std_search_examples](./Algorithm/Search/std_search_examples.cc)---------->Example of search algorithm in STL;
-    2.  [Sort](./Algorithm/Sort/sort.hpp)----------> Implementation of various sorting algorithms, as well as unit testing and performance testing based on Google Benchmark;
-        1.  [std_sort_examples](./Algorithm/Sort/std_sort_examples.cc)----------> Examples of sorting algorithms in STL;
-2.  [AtomicQueue](./AtomicQueue/atomicqueue.hpp)---------->A thread-safe queue implemented using std::atomic;
-3.  [Binary Tree](./BinaryTree/binarytree.hpp)---------->Binary tree related operations, insert, remove, search, print;
-4.  [Client](./Client/client.cpp)----------> A simple Linux select socket client;
-5.  [CountDownLatch](./CountDownLatch/countdownlatch.hpp)----------> Simple countdown latch implemented using std::mutex and std::condition_variable;
-6.  [Curl](./Curl/)----------> simple use of curl;
-    1.  [TcpClient](./Curl/tcpclient.hpp)----------> Simple TCP client implemented using curl;
-    2.  [HttpClient](./Curl/httpclient.hpp)----------> Simple HTTP synchronization client implemented using curl;
-    3.  [HttpClient Async](./Curl/httpclient_async.hpp)----------> Simple HTTP asynchronous client implemented using curl;
-7.  [Breakpad](./Breakpad/breakpad.hpp)----------> Simple package of Google Breakpad;
-8.  [Design pattern](./DesignPattern)----------> Some examples of design patterns;
-    1.  [Factory](./DesignPattern/Factory/factory.hpp)----------> factory mode;
-    2.  [MVC](./DesignPattern/MVC/model.hpp)---------->MVC mode;
-    3.  [Observer](./DesignPattern/Observer/observer.hpp)----------> Observer mode;
-    4.  [Singleton](./DesignPattern/Singleton/singleton.hpp)----------> singleton mode;
-9.  [Hawthorn](./Glog/main.cc)---------->Google Glog example;
-10. [Icmp](./Icmp/icmp.hpp)----------> Simple encapsulation of Linux ICMP protocol;
-11. [LinkedList](./LinkedList/linkedlist.hpp)----------> Linked list related operations, insert, remove, reverse, print;
-12. [MonitorDir](./MonitorDir/monitordir.hpp)---------->Windows(`ReadDirectoryChangesW`)，MacOS(`FSEvents`) and Linux (`inotify`) simple example of directory monitoring;
-13. [Mutex](./Mutex/mutex.hpp)----------> Simple mutex and spin lock implemented using std::atomic_flag;
-14. [OpenSSL](./OpenSSL)----------> Some examples of OpenSSL;
-    1.  [aes](./OpenSSL/openssl_aes.cc)---------->AES encryption and decryption example;
-    2.  [base64](./OpenSSL/openssl_base64.cc)---------->Base64 codec example;
-    3.  [hash](./OpenSSL/openssl_hash.cc)----------> SHA-256 example;
-    4.  [hmac](./OpenSSL/openssl_hmac.cc)----------> HMAC example;
-    5.  [pem](./OpenSSL/openssl_pem.cc)---------->PEM format example;
-    6.  [rsa](./OpenSSL/openssl_rsa.cc)---------->RSA encryption and decryption example;
-    7.  [sm4](./OpenSSL/openssl_sm4.cc)---------->SM4 encryption and decryption example;
-    8.  [x509](./OpenSSL/openssl_x509.cc)---------->X509 certificate example;
-    9.  [bash](./OpenSSL/openssl_bash.sh)---------->OpenSSL command line example;
-15. [Server](./Server)---------->Some examples of Linux Server;
-16. [server_epoll](./Server/server_epoll.cc)---------->Epoll example;
-17. [server_poll](./Server/server_poll.cc)----------> Poll example;
-18. [server_select](./Server/server_select.cc)---------->Select example;
-19. [Thread](./Thread/)---------->Thread class implemented based on std::thread, including thread pool;
-    1.  [Thread](./Thread/thread.hpp)----------> thread class;
-    2.  [ThreadPool](./Thread/threadpool.hpp)----------> thread pool;
+1.  [Algorithm](/Algorithm/)
+    1.  [Search](/Algorithm/Search/search.hpp)——Implementation of various search algorithms, as well as unit testing and performance testing based on Google benchmark;
+        1.  [std_search_examples](/Algorithm/Search/std_search_examples.cc)——Examples of search algorithms in stl;
+    2.  [Sort](/Algorithm/Sort/sort.hpp)——Implementation of various sorting algorithms, as well as unit testing and performance testing based on Google benchmark;
+        1.  [std_sort_examples](/Algorithm/Sort/std_sort_examples.cc)——Examples of sorting algorithms in stl;
+2.  [AtomicQueue](/AtomicQueue/atomicqueue.hpp)——Thread-safe queue implemented using std::atomic;
+3.  [BinaryTree](/BinaryTree/binarytree.hpp)——Binary tree related operations, including insertion, removal, search, and printing;
+4.  [Breakpad](/Breakpad/breakpad.hpp)——Simple encapsulation of google breakpad;
+5.  [Exchange Order](/ByteOrder/byteorder.hpp)——Determine the byte order of the system;
+6.  [Client](/Client/client.cpp)——A simple Linux select socket client;
+7.  [CountDownLatch](/CountDownLatch/countdownlatch.hpp)——A simple countdown latch implemented using std::mutex and std::condition_variable (std::latch c++20);
+8.  [Curl](/Curl/)——Simple use of curl;
+    1.  [TcpClient](/Curl/tcpclient.hpp)——Simple tcp client implemented using curl;
+    2.  [HttpClient](/Curl/httpclient.hpp)——Simple http synchronization client implemented using curl;
+    3.  [HttpClient Async](/Curl/httpclient_async.hpp)——Simple http asynchronous client implemented using curl;
+9.  [Design patterns](/DesignPattern)——Some examples of design patterns;
+    1.  [Factory](/DesignPattern/Factory/factory.hpp)——Factory mode;
+    2.  [MVC](/DesignPattern/MVC/model.hpp)——mvc mode;
+    3.  [Observer](/DesignPattern/Observer/observer.hpp)——Observer mode;
+    4.  [Singleton](/DesignPattern/Singleton/singleton.hpp)——Single case mode;
+10. [Hawthorn](/Glog/main.cc)——Google glog example;
+11. [Icmp](/Icmp/icmp.hpp)——Simple encapsulation of linux icmp protocol;
+12. [LinkedList](/LinkedList/linkedlist.hpp)——Related operations of linked lists, including insertion, removal, reversal, and printing;
+13. [Memcpy](/Memcpy/memcpy.hpp)——`memcpy`function implementation;
+14. [MonitorDir](/MonitorDir/monitordir.hpp)——windows(`ReadDirectoryChangesW`)，macos(`FSEvents`) and linux(`inotify`) Simple example of directory monitoring;
+15. [Mutex](/Mutex/mutex.hpp)——Simple mutex lock and spin lock implemented using std::atomic_flag;
+16. [OpenSSL](/OpenSSL)——Some examples of openssl;
+    1.  [aes](/OpenSSL/openssl_aes.cc)——AES encryption and decryption examples;
+    2.  [base64](/OpenSSL/openssl_base64.cc)——Examples of base64 encoding and decoding;
+    3.  [hash](/OpenSSL/openssl_hash.cc)——Example of sha256;
+    4.  [hmac](/OpenSSL/openssl_hmac.cc)——Example of hmac;
+    5.  [pem](/OpenSSL/openssl_pem.cc)——Example of pem format;
+    6.  [rsa](/OpenSSL/openssl_rsa.cc)——Examples of rsa encryption and decryption;
+    7.  [sm4](/OpenSSL/openssl_sm4.cc)——Examples of sm4 encryption and decryption;
+    8.  [x509](/OpenSSL/openssl_x509.cc)——Example of x509 certificate;
+    9.  [bash](/OpenSSL/openssl_bash.sh)——openssl command line example;
+17. [Server](/Server)——Some examples of linux server;
+    1.  [server_epoll](/Server/server_epoll.cc)——epoll example;
+    2.  [server_poll](/Server/server_poll.cc)——Poll example;
+    3.  [server_select](/Server/server_select.cc)——Example of select;
+18. [Thread](/Thread/)——Thread class implemented based on std::thread, including thread pool;
+    1.  [Thread](/Thread/thread.hpp)——线程类；
+    2.  [ThreadPool](/Thread/threadpool.hpp)--Thread Pool;
