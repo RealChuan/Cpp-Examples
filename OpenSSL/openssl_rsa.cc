@@ -1,209 +1,246 @@
 #include "openssl_utils.hpp"
 
+#include <scopeguard.hpp>
+
+#include <gtest/gtest.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 
-#include <gtest/gtest.h>
+#include <memory>
 
-// RSA generate key
-void rsa_generate_key(std::string &pub_key, std::string &pri_key)
+class OpensslRsa : noncopyable
 {
-    RSA *rsa = RSA_new();
-    if (rsa == nullptr) {
-        openssl_error();
-        return;
+public:
+    OpensslRsa() = default;
+    explicit OpensslRsa(int bits) { generate(bits); }
+    ~OpensslRsa() { destroy(); }
+
+    void generate(int bits)
+    {
+        destroy();
+        m_pkey = EVP_RSA_gen(bits);
     }
 
-    BIGNUM *e = BN_new();
-    if (e == nullptr) {
-        openssl_error();
-        RSA_free(rsa);
-        return;
+    auto encrypt(int padding, const std::string &plain) -> std::string
+    {
+        assert(m_pkey != nullptr);
+
+        auto *ctx = EVP_PKEY_CTX_new(m_pkey, nullptr);
+        auto cleanup = scopeGuard([&] {
+            if (ctx != nullptr) {
+                EVP_PKEY_CTX_free(ctx);
+            }
+        });
+
+        if (ctx == nullptr) {
+            openssl_error();
+            return {};
+        }
+        if (EVP_PKEY_encrypt_init(ctx) <= 0) {
+            openssl_error();
+            return {};
+        }
+
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx, padding) <= 0) {
+            openssl_error();
+            return {};
+        }
+
+        std::string cipher;
+        cipher.resize(EVP_PKEY_size(m_pkey));
+        size_t outLen = 0;
+        if (EVP_PKEY_encrypt(ctx,
+                             reinterpret_cast<unsigned char *>(cipher.data()),
+                             &outLen,
+                             reinterpret_cast<const unsigned char *>(plain.c_str()),
+                             static_cast<int>(plain.size()))
+            <= 0) {
+            openssl_error();
+            return {};
+        }
+        cipher.resize(outLen);
+        return cipher;
     }
 
-    if (BN_set_word(e, RSA_F4) != 1) {
-        openssl_error();
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+    auto decrypt(int padding, const std::string &cipher) -> std::string
+    {
+        assert(m_pkey != nullptr);
+
+        auto *ctx = EVP_PKEY_CTX_new(m_pkey, nullptr);
+        auto cleanup = scopeGuard([&] {
+            if (ctx != nullptr) {
+                EVP_PKEY_CTX_free(ctx);
+            }
+        });
+
+        if (ctx == nullptr) {
+            openssl_error();
+            return {};
+        }
+        if (EVP_PKEY_decrypt_init(ctx) <= 0) {
+            openssl_error();
+            return {};
+        }
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx, padding) <= 0) {
+            openssl_error();
+            return {};
+        }
+
+        std::string plain;
+        plain.resize(EVP_PKEY_size(m_pkey));
+        size_t len = plain.size();
+        if (EVP_PKEY_decrypt(ctx,
+                             reinterpret_cast<unsigned char *>(plain.data()),
+                             &len,
+                             reinterpret_cast<const unsigned char *>(cipher.c_str()),
+                             static_cast<int>(cipher.size()))
+            <= 0) {
+            openssl_error();
+            return {};
+        }
+        plain.resize(len);
+        return plain;
     }
 
-    if (RSA_generate_key_ex(rsa, 2048, e, nullptr) != 1) { // RSA-2048
-        openssl_error();
-        BN_free(e);
-        RSA_free(rsa);
-        return;
-    }
-
-    BIO *bio = BIO_new(BIO_s_mem());
-    if (bio == nullptr) {
-        openssl_error();
-        BN_free(e);
-        RSA_free(rsa);
-        return;
-    }
-
-    if (PEM_write_bio_RSAPublicKey(bio, rsa) != 1) {
-        openssl_error();
+    [[nodiscard]] auto toPublicPem() const -> std::string
+    {
+        BIO *bio = BIO_new(BIO_s_mem());
+        PEM_write_bio_PUBKEY(bio, m_pkey);
+        char *data;
+        int len = BIO_get_mem_data(bio, &data);
+        std::string ret(data, len);
         BIO_free(bio);
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+        return ret;
     }
 
-    int len = BIO_pending(bio);
-    pub_key.resize(len);
-
-    if (BIO_read(bio, pub_key.data(), len) != len) {
-        openssl_error();
+    [[nodiscard]] auto toPrivatePem() const -> std::string
+    {
+        BIO *bio = BIO_new(BIO_s_mem());
+        PEM_write_bio_PrivateKey(bio, m_pkey, nullptr, nullptr, 0, nullptr, nullptr);
+        char *data;
+        int len = BIO_get_mem_data(bio, &data);
+        std::string ret(data, len);
         BIO_free(bio);
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+        return ret;
     }
 
-    BIO_free(bio);
-
-    bio = BIO_new(BIO_s_mem());
-    if (bio == nullptr) {
-        openssl_error();
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+private:
+    void destroy()
+    {
+        if (m_pkey != nullptr) {
+            EVP_PKEY_free(m_pkey);
+            m_pkey = nullptr;
+        }
     }
 
-    if (PEM_write_bio_RSAPrivateKey(bio, rsa, nullptr, nullptr, 0, nullptr, nullptr) != 1) {
-        openssl_error();
+    static auto fromPublicPem(const std::string &pem) -> OpensslRsa *
+    {
+        std::unique_ptr<OpensslRsa> retPtr(new OpensslRsa);
+        BIO *bio = BIO_new_mem_buf(pem.c_str(), -1);
+        if (bio == nullptr) {
+            return nullptr;
+        }
+        retPtr->m_pkey = PEM_read_bio_PUBKEY(bio, nullptr, nullptr, nullptr);
         BIO_free(bio);
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+        return retPtr.release();
     }
 
-    len = BIO_pending(bio);
-    pri_key.resize(len);
-
-    if (BIO_read(bio, pri_key.data(), len) != len) {
-        openssl_error();
+    static auto fromPrivatePem(const std::string &pem) -> OpensslRsa *
+    {
+        std::unique_ptr<OpensslRsa> retPtr(new OpensslRsa);
+        BIO *bio = BIO_new_mem_buf(pem.c_str(), -1);
+        if (bio == nullptr) {
+            return nullptr;
+        }
+        retPtr->m_pkey = PEM_read_bio_PrivateKey(bio, nullptr, nullptr, nullptr);
         BIO_free(bio);
-        BN_free(e);
-        RSA_free(rsa);
-        return;
+        return retPtr.release();
     }
 
-    BIO_free(bio);
-    BN_free(e);
-    RSA_free(rsa);
+    friend class OpensslRsaPublicKey;
+    friend class OpensslRsaPrivateKey;
+
+    EVP_PKEY *m_pkey = nullptr;
+};
+
+class OpensslRsaPublicKey : noncopyable
+{
+public:
+    explicit OpensslRsaPublicKey(const std::string &pem) { setPublicPem(pem); }
+    ~OpensslRsaPublicKey() = default;
+
+    void setPublicPem(const std::string &pem)
+    {
+        m_opensslRsaPtr.reset(OpensslRsa::fromPublicPem(pem));
+    }
+
+    [[nodiscard]] auto toPem() const -> std::string
+    {
+        assert(m_opensslRsaPtr != nullptr);
+        return m_opensslRsaPtr->toPublicPem();
+    }
+
+    [[nodiscard]] auto encrypt(int padding, const std::string &plain) const -> std::string
+    {
+        assert(m_opensslRsaPtr != nullptr);
+        return m_opensslRsaPtr->encrypt(padding, plain);
+    }
+
+private:
+    std::unique_ptr<OpensslRsa> m_opensslRsaPtr;
+};
+
+class OpensslRsaPrivateKey : noncopyable
+{
+public:
+    explicit OpensslRsaPrivateKey(const std::string &pem) { setPrivatePem(pem); }
+    ~OpensslRsaPrivateKey() = default;
+
+    void setPrivatePem(const std::string &pem)
+    {
+        m_opensslRsaPtr.reset(OpensslRsa::fromPrivatePem(pem));
+    }
+
+    [[nodiscard]] auto toPem() const -> std::string
+    {
+        assert(m_opensslRsaPtr != nullptr);
+        return m_opensslRsaPtr->toPrivatePem();
+    }
+
+    [[nodiscard]] auto decrypt(int padding, const std::string &cipher) const -> std::string
+    {
+        assert(m_opensslRsaPtr != nullptr);
+        return m_opensslRsaPtr->decrypt(padding, cipher);
+    }
+
+private:
+    std::unique_ptr<OpensslRsa> m_opensslRsaPtr;
+};
+
+TEST(OpensslRsa, test)
+{
+    OpensslRsa opensslRsa(2048);
+    std::cout << "Rsa public key: \n" << opensslRsa.toPublicPem() << '\n';
+    std::cout << "Rsa private key: \n" << opensslRsa.toPrivatePem() << '\n';
+
+    const std::string plain = "hello world";
+    auto cipher = opensslRsa.encrypt(RSA_PKCS1_PADDING, plain);
+    auto plain2 = opensslRsa.decrypt(RSA_PKCS1_PADDING, cipher);
+
+    EXPECT_EQ(plain, plain2);
 }
 
-// RSA encrypt
-auto rsa_encrypt(const std::string &pub_key, const std::string &plain) -> std::string
+TEST(OpensslRsa, test2)
 {
-    std::string cipher;
+    OpensslRsa opensslRsa(2048);
+    OpensslRsaPublicKey opensslRsaPublicKey(opensslRsa.toPublicPem());
+    OpensslRsaPrivateKey opensslRsaPrivateKey(opensslRsa.toPrivatePem());
+    std::cout << "Rsa public key: \n" << opensslRsaPublicKey.toPem() << '\n';
+    std::cout << "Rsa private key: \n" << opensslRsaPrivateKey.toPem() << '\n';
 
-    BIO *bio = BIO_new(BIO_s_mem());
-    if (bio == nullptr) {
-        openssl_error();
-        return cipher;
-    }
-
-    if (BIO_write(bio, pub_key.c_str(), static_cast<int>(pub_key.size()))
-        != static_cast<int>(pub_key.size())) {
-        openssl_error();
-        BIO_free(bio);
-        return cipher;
-    }
-
-    RSA *rsa = PEM_read_bio_RSAPublicKey(bio, nullptr, nullptr, nullptr);
-    if (rsa == nullptr) {
-        openssl_error();
-        BIO_free(bio);
-        return cipher;
-    }
-
-    int rsa_len = RSA_size(rsa);
-    cipher.resize(rsa_len);
-
-    int len = RSA_public_encrypt(static_cast<int>(plain.size()),
-                                 reinterpret_cast<const unsigned char *>(plain.c_str()),
-                                 reinterpret_cast<unsigned char *>(cipher.data()),
-                                 rsa,
-                                 RSA_PKCS1_PADDING);
-    if (len == -1) {
-        openssl_error();
-        BIO_free(bio);
-        RSA_free(rsa);
-        return cipher;
-    }
-
-    cipher.resize(len);
-
-    BIO_free(bio);
-    RSA_free(rsa);
-
-    return cipher;
-}
-
-// RSA decrypt
-auto rsa_decrypt(const std::string &pri_key, const std::string &cipher) -> std::string
-{
-    std::string plain;
-
-    BIO *bio = BIO_new(BIO_s_mem());
-    if (bio == nullptr) {
-        openssl_error();
-        return plain;
-    }
-
-    if (BIO_write(bio, pri_key.c_str(), static_cast<int>(pri_key.size()))
-        != static_cast<int>(pri_key.size())) {
-        openssl_error();
-        BIO_free(bio);
-        return plain;
-    }
-
-    RSA *rsa = PEM_read_bio_RSAPrivateKey(bio, nullptr, nullptr, nullptr);
-    if (rsa == nullptr) {
-        openssl_error();
-        BIO_free(bio);
-        return plain;
-    }
-
-    int rsa_len = RSA_size(rsa);
-    plain.resize(rsa_len);
-
-    int len = RSA_private_decrypt(static_cast<int>(cipher.size()),
-                                  reinterpret_cast<const unsigned char *>(cipher.c_str()),
-                                  reinterpret_cast<unsigned char *>(plain.data()),
-                                  rsa,
-                                  RSA_PKCS1_PADDING);
-    if (len == -1) {
-        openssl_error();
-        BIO_free(bio);
-        RSA_free(rsa);
-        return plain;
-    }
-
-    plain.resize(len);
-
-    BIO_free(bio);
-    RSA_free(rsa);
-
-    return plain;
-}
-
-TEST(openssl_rsa, rsa_encrypt_decrypt)
-{
-    const auto *plain = "hello world";
-    std::string pub_key;
-    std::string pri_key;
-    rsa_generate_key(pub_key, pri_key);
-    std::cout << "rsa pub key: " << pub_key << '\n';
-    std::cout << "rsa pri key: " << pri_key << '\n';
-    auto cipher = rsa_encrypt(pub_key, plain);
-    std::cout << "rsa cipher: " << toHex(cipher) << '\n';
-    auto plain2 = rsa_decrypt(pri_key, cipher);
-    std::cout << "rsa plain: " << plain2 << '\n';
+    const std::string plain = "hello world";
+    auto cipher = opensslRsaPublicKey.encrypt(RSA_PKCS1_PADDING, plain);
+    auto plain2 = opensslRsaPrivateKey.decrypt(RSA_PKCS1_PADDING, cipher);
 
     EXPECT_EQ(plain, plain2);
 }
