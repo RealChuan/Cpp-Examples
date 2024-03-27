@@ -13,21 +13,42 @@
 #include <locale>
 
 #ifdef _WIN32
-bool callback(const wchar_t *dump_path,
+
+auto convertWideStringToUTF8(const wchar_t *wstr) -> std::string
+{
+    if (wstr == nullptr) {
+        return {};
+    }
+
+    // 首先，获取转换后的字符串长度（不包括空终止符）
+    int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+
+    // 如果转换失败，返回空字符串
+    if (len == 0) {
+        return {};
+    }
+
+    // 分配足够的空间来存储转换后的字符串
+    std::string utf8String(len, 0);
+
+    // 执行转换
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, &utf8String[0], len, nullptr, nullptr);
+
+    // 去除末尾的空字符
+    utf8String.resize(len - 1);
+    return utf8String;
+}
+
+auto callback(const wchar_t *dump_path,
               const wchar_t *id,
               void *context,
               EXCEPTION_POINTERS *exinfo,
               MDRawAssertionInfo *assertion,
-              bool succeeded)
+              bool succeeded) -> bool
 {
-    auto succeeded_str = succeeded ? "succeeded" : "fialed";
-    auto convert_str = [](const wchar_t *wstr) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.to_bytes(wstr);
-    };
-    auto dump_path_str = convert_str(dump_path) + convert_str(id);
-    std::cout << "Create dump file " << succeeded_str << " Dump path: " << dump_path_str
-              << std::endl;
+    const auto *succeeded_str = succeeded ? "succeeded" : "fialed";
+    auto dump_path_str = convertWideStringToUTF8(dump_path) + convertWideStringToUTF8(id);
+    std::cout << "Create dump file " << succeeded_str << " Dump path: " << dump_path_str << '\n';
     return succeeded;
 }
 #elif __APPLE__
@@ -66,4 +87,4 @@ Breakpad::Breakpad(const std::string &dump_path)
 #endif
 }
 
-Breakpad::~Breakpad() {}
+Breakpad::~Breakpad() = default;
