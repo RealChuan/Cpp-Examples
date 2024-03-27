@@ -5,29 +5,33 @@
 auto main(int argc, char **argv) -> int
 {
     (void) argc;
-    (void) argv;
+
+    const auto *log_dir = "./glog_demo";
 
     // Initialize Google’s logging library.
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
     google::SetLogFilenameExtension(".log");
-    google::EnableLogCleaner(3);
+    google::EnableLogCleaner(7);
     //google::DisableLogCleaner();
-    FLAGS_alsologtostderr = true;  //是否将日志输出到文件和stderr
-    FLAGS_colorlogtostderr = true; //是否启用不同颜色显示
-    fLS::FLAGS_log_dir = "./Log";
+    FLAGS_alsologtostderr = true;  // 是否将日志输出到文件和stderr
+    FLAGS_colorlogtostderr = true; // 是否启用不同颜色显示
+    FLAGS_max_log_size = 1000;     // 最大日志文件大小
+    fLS::FLAGS_log_dir = log_dir;
 
-    std::filesystem::create_directories("./Log");
+    std::filesystem::create_directories(log_dir);
 
-    LOG(INFO) << "INFO_LOG Hello, world!";
-    LOG(WARNING) << "WARNING_LOG Hello, world!";
-    LOG(ERROR) << "ERROR_LOG Hello, world!";
-    //LOG(FATAL) << "FATAL_LOG Hello, world!";
+    std::string message("Hello World");
 
-    DLOG(INFO) << "DINFO_LOG Hello, world!";
-    DLOG(WARNING) << "DWARNING_LOG Hello, world!";
-    DLOG(ERROR) << "DERROR_LOG Hello, world!";
-    //DLOG(FATAL) << "DFATAL_LOG Hello, world!";
+    LOG(INFO) << message;
+    LOG(WARNING) << message;
+    LOG(ERROR) << message;
+    // LOG(FATAL) << message;
+
+    DLOG(INFO) << message;
+    DLOG(WARNING) << message;
+    DLOG(ERROR) << message;
+    // DLOG(FATAL) << message;
 
     google::ShutdownGoogleLogging();
     return 0;
