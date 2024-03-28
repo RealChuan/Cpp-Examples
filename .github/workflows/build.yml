@@ -38,30 +38,14 @@ jobs:
           - "Release"
         generators:
           - "Ninja"
-        vcpkg_libs:
-          - glog breakpad benchmark gtest openssl[tools] curl[openssl,brotli,c-ares,http2,tool]
   
     steps:      
-      - name: Restore windows vcpkg
-        if: startsWith(matrix.os, 'windows')
-        uses: actions/cache/restore@v3
-        with: 
-          path: C:\vcpkg\installed
-          key: ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}
-      - name: Restore macos or ubuntu vcpkg
-        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
-        uses: actions/cache/restore@v3
-        with: 
-          path: /usr/local/share/vcpkg/installed
-          key: ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}
-
       - name: Install dependencies on windows
         if: startsWith(matrix.os, 'windows')
         run: |
           choco install ninja
           ninja --version
           cmake --version
-          vcpkg install ${{ matrix.vcpkg_libs }} --triplet x64-windows
       - name: Install dependencies on macos
         if: startsWith(matrix.os, 'macos')
         shell: bash
@@ -70,7 +54,6 @@ jobs:
           ninja --version
           cmake --version
           clang --version
-          vcpkg install ${{ matrix.vcpkg_libs }} --triplet x64-osx
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -79,11 +62,26 @@ jobs:
           ninja --version
           cmake --version
           gcc --version
-          vcpkg install ${{ matrix.vcpkg_libs }} --triplet x64-linux
 
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Update vcpkg manifest baseline
+        shell: bash
+        run: |
+          vcpkg x-update-baseline
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with: 
+          path: ${{ github.workspace }}/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-
+            ${{ runner.os }}-vcpkg-installed-
+            ${{ runner.os }}-
+          save-always: true
 
       - name: Enable Developer Command Prompt
         if: startsWith(matrix.os, 'windows')

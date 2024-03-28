@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "cpp-examples",
+  "version": "0.0.1",
+  "description": "manifest",
+  "dependencies": [
+    "glog",
+    "breakpad",
+    "benchmark",
+    "gtest",
+    {
+      "name": "openssl",
+      "features": [
+        "tools"
+      ]
+    },
+    {
+      "name": "curl",
+      "features": [
+        "openssl",
+        "brotli",
+        "c-ares",
+        "http2",
+        "tool"
+      ]
+    }
+  ],
+  "builtin-baseline": "3c76dc55f8bd2b7f4824bcd860055094bfbbb9ea"
+}

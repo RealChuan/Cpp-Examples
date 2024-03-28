@@ -17,7 +17,7 @@ endif()
 
 # 设定工程名
 project(
-  Cpp-Example
+  Cpp-Examples
   VERSION 0.1
   LANGUAGES C CXX)
 
