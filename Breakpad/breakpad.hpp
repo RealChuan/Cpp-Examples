@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utils/object.hpp>
+
 #include <memory>
 #include <string>
 
@@ -7,10 +9,10 @@ namespace google_breakpad {
 class ExceptionHandler;
 }
 
-class Breakpad
+class Breakpad : noncopyable
 {
 public:
-    Breakpad(const std::string &dump_path);
+    explicit Breakpad(const std::string &dump_path);
     ~Breakpad();
 
 private:

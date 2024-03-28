@@ -1,6 +1,6 @@
 #pragma once
 
-#include <object.hpp>
+#include <utils/object.hpp>
 
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -136,7 +136,7 @@ private:
     {
         CURLMsg *message = nullptr;
         int pending = 0;
-        while ((message = curl_multi_info_read(m_multi, &pending))) {
+        while ((message = curl_multi_info_read(m_multi, &pending)) != nullptr) {
             switch (message->msg) {
             case CURLMSG_DONE: {
                 CURL *handle = message->easy_handle;

@@ -1,7 +1,7 @@
 ﻿#ifndef SINGLETON_HPP
 #define SINGLETON_HPP
 
-#include <object.hpp>
+#include <utils/object.hpp>
 
 #include <iostream>
 #include <memory>

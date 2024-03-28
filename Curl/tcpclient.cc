@@ -28,7 +28,7 @@ auto TcpClient::connect() -> bool
     }
 
     m_curl = curl_easy_init();
-    if (!m_curl) {
+    if (m_curl == nullptr) {
         return false;
     }
 

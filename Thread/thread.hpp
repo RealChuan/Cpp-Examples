@@ -1,6 +1,6 @@
 #pragma once
 
-#include <object.hpp>
+#include <utils/object.hpp>
 
 #include <atomic>
 #include <cassert>
@@ -16,7 +16,7 @@ public:
     using Task = std::function<void()>;
 
     Thread() = default;
-    Thread(Task task) { setTask(task); }
+    explicit Thread(Task task) { setTask(task); }
     ~Thread() { stop(); }
 
     void setTask(Task task) { m_task = std::move(task); }
@@ -46,9 +46,9 @@ public:
         m_condition.wait(lock, [this]() { return m_running.load(); });
     }
 
-    bool isRunning() const { return m_running; }
+    auto isRunning() const -> bool { return m_running; }
 
-    std::thread::id getThreadId() const { return m_thread.get_id(); }
+    auto getThreadId() const -> std::thread::id { return m_thread.get_id(); }
 
     static void yield() { std::this_thread::yield(); }
 
@@ -62,7 +62,7 @@ public:
         std::this_thread::sleep_until(timePoint);
     }
 
-    static unsigned int hardwareConcurrency()
+    static auto hardwareConcurrency() -> unsigned int
     {
         unsigned int n = std::thread::hardware_concurrency(); // 如果不支持，返回0
         assert(n > 0);

@@ -6,18 +6,18 @@ auto main(int argc, char **argv) -> int
 {
     (void) argc;
 
-    const auto *log_dir = "./glog_demo";
+    const auto log_dir = std::filesystem::current_path() / "glog";
 
     // Initialize Google’s logging library.
     google::InitGoogleLogging(argv[0]);
     google::InstallFailureSignalHandler();
     google::SetLogFilenameExtension(".log");
-    google::EnableLogCleaner(7);
+    google::EnableLogCleaner(std::chrono::hours(24 * 7));
     //google::DisableLogCleaner();
     FLAGS_alsologtostderr = true;  // 是否将日志输出到文件和stderr
     FLAGS_colorlogtostderr = true; // 是否启用不同颜色显示
     FLAGS_max_log_size = 1000;     // 最大日志文件大小
-    fLS::FLAGS_log_dir = log_dir;
+    fLS::FLAGS_log_dir = log_dir.string();
 
     std::filesystem::create_directories(log_dir);
 

@@ -1,6 +1,6 @@
 #include "openssl_utils.hpp"
 
-#include <scopeguard.hpp>
+#include <utils/scopeguard.hpp>
 
 #include <gtest/gtest.h>
 #include <openssl/pem.h>
