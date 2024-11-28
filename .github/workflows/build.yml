@@ -78,7 +78,6 @@ jobs:
             ${{ matrix.os }}-vcpkg-installed-${{ runner.os }}-
             ${{ matrix.os }}-vcpkg-installed-
             ${{ matrix.os }}-
-          save-always: true
 
       - name: Configure and build windows
         if: startsWith(matrix.os, 'windows')

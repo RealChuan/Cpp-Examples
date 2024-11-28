@@ -8,6 +8,7 @@
     "breakpad",
     "benchmark",
     "gtest",
+    "crashpad",
     {
       "name": "openssl",
       "features": [
@@ -23,8 +24,7 @@
         "http2",
         "tool"
       ]
-    },
-    "crashpad"
+    }
   ],
-  "builtin-baseline": "8150939b69720adc475461978e07c2d2bf5fb76e"
+  "builtin-baseline": "5f4628b89f3f98cd9a0b43c27ded2aa53da1f790"
 }
