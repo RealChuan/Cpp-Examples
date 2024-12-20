@@ -5,6 +5,83 @@
 #include <iostream>
 #include <thread>
 
+std::string eventFlagsToString(FSEventStreamEventFlags eventFlags)
+{
+    if ((eventFlags & kFSEventStreamEventFlagNone) != 0U) {
+        return "None: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagMustScanSubDirs) != 0U) {
+        return "MustScanSubDirs: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagUserDropped) != 0U) {
+        return "UserDropped: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagKernelDropped) != 0U) {
+        return "KernelDropped: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagEventIdsWrapped) != 0U) {
+        return "EventIdsWrapped: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagHistoryDone) != 0U) {
+        return "HistoryDone: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagRootChanged) != 0U) {
+        return "RootChanged: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagMount) != 0U) {
+        return "Mount: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagUnmount) != 0U) {
+        return "Unmount: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemCreated) != 0U) {
+        return "Created: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemRemoved) != 0U) {
+        return "Removed: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemInodeMetaMod) != 0U) {
+        return "InodeMetaMod: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemRenamed) != 0U) {
+        return "Renamed: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemModified) != 0U) {
+        return "Modified: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemFinderInfoMod) != 0U) {
+        return "FinderInfoMod: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemChangeOwner) != 0U) {
+        return "ChangeOwner: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemXattrMod) != 0U) {
+        return "XattrMod: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemIsFile) != 0U) {
+        return "IsFile: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemIsDir) != 0U) {
+        return "IsDir: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemIsSymlink) != 0U) {
+        return "IsSymlink: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagOwnEvent) != 0U) {
+        return "OwnEvent: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemIsHardlink) != 0U) {
+        return "IsHardlink: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemIsLastHardlink) != 0U) {
+        return "IsLastHardlink: ";
+    }
+    if ((eventFlags & kFSEventStreamEventFlagItemCloned) != 0U) {
+        return "Cloned: ";
+    }
+    return "Unknown " + std::to_string(eventFlags) + ": ";
+}
+
 class MonitorDir::MonitorDirPrivate
 {
 public:
@@ -21,42 +98,17 @@ public:
                                 const FSEventStreamEventFlags eventFlags[],
                                 const FSEventStreamEventId eventIds[])
     {
-        //auto *monitorDir = static_cast<MonitorDirPrivate *>(clientCallBackInfo);
+        // auto *monitorDir = static_cast<MonitorDirPrivate *>(clientCallBackInfo);
         char **paths = static_cast<char **>(eventPaths);
-        std::string fileEvent;
+        if (paths == nullptr) {
+            std::cerr << "Error: paths is null." << std::endl;
+            return;
+        }
         for (size_t i = 0; i < numEvents; ++i) {
-            if ((eventFlags[i] & kFSEventStreamEventFlagItemCreated) != 0U) {
-                fileEvent = "Created: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemRemoved) != 0U) {
-                fileEvent = "Removed: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemRenamed) != 0U) {
-                fileEvent = "Renamed: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemModified) != 0U) {
-                fileEvent = "Modified: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemInodeMetaMod) != 0U) {
-                fileEvent = "InodeMetaMod: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemChangeOwner) != 0U) {
-                fileEvent = "ChangeOwner: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemXattrMod) != 0U) {
-                fileEvent = "XattrMod: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsFile) != 0U) {
-                fileEvent = "IsFile: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsDir) != 0U) {
-                fileEvent = "IsDir: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsSymlink) != 0U) {
-                fileEvent = "IsSymlink: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagOwnEvent) != 0U) {
-                fileEvent = "OwnEvent: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsHardlink) != 0U) {
-                fileEvent = "IsHardlink: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemIsLastHardlink) != 0U) {
-                fileEvent = "IsLastHardlink: ";
-            } else if ((eventFlags[i] & kFSEventStreamEventFlagItemCloned) != 0U) {
-                fileEvent = "Cloned: ";
-            } else {
-                fileEvent = "Unknown: ";
+            auto fileEvent = eventFlagsToString(eventFlags[i]);
+            if (paths[i] != nullptr) {
+                fileEvent += paths[i];
             }
-            fileEvent += paths[i];
             std::cout << fileEvent << std::endl;
         }
     }
@@ -77,7 +129,7 @@ public:
                                                       &context,
                                                       pathsToWatch,
                                                       kFSEventStreamEventIdSinceNow,
-                                                      0.1,
+                                                      3,
                                                       kFSEventStreamCreateFlagFileEvents);
         runLoop = CFRunLoopGetCurrent();
         FSEventStreamScheduleWithRunLoop(stream, runLoop, kCFRunLoopDefaultMode);

@@ -7,6 +7,65 @@
 #include <thread>
 #include <unistd.h>
 
+std::string maskToString(uint32_t mask)
+{
+    if ((mask & IN_ACCESS) != 0U) {
+        return "IN_ACCESS: ";
+    }
+    if ((mask & IN_MODIFY) != 0U) {
+        return "IN_MODIFY: ";
+    }
+    if ((mask & IN_ATTRIB) != 0U) {
+        return "IN_ATTRIB: ";
+    }
+    if ((mask & IN_CLOSE_WRITE) != 0U) {
+        return "IN_CLOSE_WRITE: ";
+    }
+    if ((mask & IN_CLOSE_NOWRITE) != 0U) {
+        return "IN_CLOSE_NOWRITE: ";
+    }
+    if ((mask & IN_CLOSE) != 0U) {
+        return "IN_CLOSE: ";
+    }
+    if ((mask & IN_OPEN) != 0U) {
+        return "IN_OPEN: ";
+    }
+    if ((mask & IN_MOVED_FROM) != 0U) {
+        return "IN_MOVED_FROM: ";
+    }
+    if ((mask & IN_MOVED_TO) != 0U) {
+        return "IN_MOVED_TO: ";
+    }
+    if ((mask & IN_MOVE) != 0U) {
+        return "IN_MOVE: ";
+    }
+    if ((mask & IN_CREATE) != 0U) {
+        return "IN_CREATE: ";
+    }
+    if ((mask & IN_DELETE) != 0U) {
+        return "IN_DELETE: ";
+    }
+    if ((mask & IN_DELETE_SELF) != 0U) {
+        return "IN_DELETE_SELF: ";
+    }
+    if ((mask & IN_MOVE_SELF) != 0U) {
+        return "IN_MOVE_SELF: ";
+    }
+    if ((mask & IN_UNMOUNT) != 0U) {
+        return "IN_UNMOUNT: ";
+    }
+    if ((mask & IN_Q_OVERFLOW) != 0U) {
+        return "IN_Q_OVERFLOW: ";
+    }
+    if ((mask & IN_IGNORED) != 0U) {
+        return "IN_IGNORED: ";
+    }
+    if ((mask & IN_ISDIR) != 0U) {
+        return "IN_ISDIR: ";
+    }
+    return "Unknown mask " + std::to_string(mask) + ": ";
+}
+
 class MonitorDir::MonitorDirPrivate
 {
 public:
@@ -16,13 +75,13 @@ public:
 
     ~MonitorDirPrivate() = default;
 
-    bool createFd()
+    auto createFd() -> bool
     {
         // 创建inotify实例
         inotifyFd = inotify_init();
         if (inotifyFd == -1) {
-            std::cerr << "inotify_init failed" << std::endl;
-            return false;
+            perror("inotify_init");
+            exit(EXIT_FAILURE);
         }
 
         return true;
@@ -41,11 +100,10 @@ public:
         // 添加监控目录
         watchFd = inotify_add_watch(inotifyFd, dir.c_str(), IN_ALL_EVENTS);
         if (watchFd == -1) {
-            std::cerr << "inotify_add_watch failed" << std::endl;
-            return false;
+            perror("inotify_add_watch");
+            exit(EXIT_FAILURE);
         }
         std::cout << "add watch: " << dir << std::endl;
-
         return true;
     }
 
@@ -59,9 +117,11 @@ public:
 
     void monitor()
     {
-        char buf[1024];
-        struct inotify_event *event;
-        auto len = read(inotifyFd, buf, sizeof(buf));
+        constexpr size_t eventSize = sizeof(struct inotify_event);
+        constexpr size_t bufLen = 1024 * (eventSize + 16); // Buffer to hold multiple events
+        char buf[bufLen];
+
+        auto len = read(inotifyFd, buf, bufLen);
         if (!isRunning.load()) {
             return;
         }
@@ -70,45 +130,13 @@ public:
             return;
         }
 
-        std::string fileEvent;
-        for (char *ptr = buf; ptr < buf + len; ptr += sizeof(struct inotify_event) + event->len) {
-            event = reinterpret_cast<struct inotify_event *>(ptr);
-            if ((event->mask & IN_CREATE) != 0U) {
-                fileEvent = "IN_CREATE: ";
-            } else if ((event->mask & IN_DELETE) != 0U) {
-                fileEvent = "IN_DELETE: ";
-            } else if ((event->mask & IN_MODIFY) != 0U) {
-                fileEvent = "IN_MODIFY: ";
-            } else if ((event->mask & IN_MOVED_FROM) != 0U) {
-                fileEvent = "IN_MOVED_FROM: ";
-            } else if ((event->mask & IN_MOVED_TO) != 0U) {
-                fileEvent = "IN_MOVED_TO: ";
-            } else if ((event->mask & IN_CLOSE_WRITE) != 0U) {
-                fileEvent = "IN_CLOSE_WRITE: ";
-            } else if ((event->mask & IN_CLOSE_NOWRITE) != 0U) {
-                fileEvent = "IN_CLOSE_NOWRITE: ";
-            } else if ((event->mask & IN_ACCESS) != 0U) {
-                fileEvent = "IN_ACCESS: ";
-            } else if ((event->mask & IN_ATTRIB) != 0U) {
-                fileEvent = "IN_ATTRIB: ";
-            } else if ((event->mask & IN_OPEN) != 0U) {
-                fileEvent = "IN_OPEN: ";
-            } else if ((event->mask & IN_DELETE_SELF) != 0U) {
-                fileEvent = "IN_DELETE_SELF: ";
-            } else if ((event->mask & IN_MOVE_SELF) != 0U) {
-                fileEvent = "IN_MOVE_SELF: ";
-            } else if ((event->mask & IN_UNMOUNT) != 0U) {
-                fileEvent = "IN_UNMOUNT: ";
-            } else if ((event->mask & IN_Q_OVERFLOW) != 0U) {
-                fileEvent = "IN_Q_OVERFLOW: ";
-            } else if ((event->mask & IN_IGNORED) != 0U) {
-                fileEvent = "IN_IGNORED: ";
-            } else if ((event->mask & IN_ISDIR) != 0U) {
-                fileEvent = "IN_ISDIR: ";
-            } else {
-                fileEvent = "UNKNOWN: ";
+        for (char *ptr = buf; ptr < buf + len;
+             ptr += eventSize + reinterpret_cast<struct inotify_event *>(ptr)->len) {
+            auto *event = reinterpret_cast<struct inotify_event *>(ptr);
+            std::string fileEvent = maskToString(event->mask);
+            if (event->len > 0) {
+                fileEvent += event->name;
             }
-            fileEvent += event->name;
             std::cout << fileEvent << std::endl;
         }
     }
