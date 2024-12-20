@@ -6,21 +6,33 @@
 #include <thread>
 #include <windows.h>
 
-std::string utf8_encode(const std::wstring &wstr)
+std::string wstringToString(const std::wstring &wstr)
 {
     if (wstr.empty()) {
         return std::string();
     }
 
     int size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
-    if (size == 0) {
+    if (size <= 0) {
         return std::string();
     }
 
     std::string str(size, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size, NULL, NULL);
-
     return str;
+}
+
+std::string actionToString(DWORD Action)
+{
+    switch (Action) {
+    case FILE_ACTION_ADDED: return "FILE_ACTION_ADDED: ";
+    case FILE_ACTION_REMOVED: return "FILE_ACTION_REMOVED: ";
+    case FILE_ACTION_MODIFIED: return "FILE_ACTION_MODIFIED: ";
+    case FILE_ACTION_RENAMED_OLD_NAME: return "FILE_ACTION_RENAMED_OLD_NAME: ";
+    case FILE_ACTION_RENAMED_NEW_NAME: return "FILE_ACTION_RENAMED_NEW_NAME: ";
+    default: return "Unknown " + std::to_string(Action) + ": ";
+    }
+    return "";
 }
 
 class MonitorDir::MonitorDirPrivate
@@ -82,12 +94,13 @@ public:
 
     void monitor()
     {
-        char notifyBuffer[BUFSIZ] = {0};
+        std::vector<char> notifyBuffer(BUFSIZ);
         DWORD bytesReturned = 0;
+
         // 监视目录变化
-        BOOL result = ReadDirectoryChangesW(directoryHandle,
-                                            notifyBuffer,
-                                            sizeof(notifyBuffer),
+        auto result = ReadDirectoryChangesW(directoryHandle,
+                                            notifyBuffer.data(),
+                                            static_cast<DWORD>(notifyBuffer.size()),
                                             TRUE,
                                             filters,
                                             &bytesReturned,
@@ -99,7 +112,7 @@ public:
         }
 
         // 等待目录变化
-        DWORD waitResult = WaitForSingleObject(overlapped.hEvent, INFINITE);
+        auto waitResult = WaitForSingleObject(overlapped.hEvent, INFINITE);
         if (!isRunning.load()) {
             return;
         }
@@ -120,32 +133,18 @@ public:
         }
 
         // 通知目录变化
-        std::string fileEvent;
-        PFILE_NOTIFY_INFORMATION notifyInfo = (PFILE_NOTIFY_INFORMATION) notifyBuffer;
+        auto notifyInfo = reinterpret_cast<PFILE_NOTIFY_INFORMATION>(notifyBuffer.data());
         while (isRunning.load()) {
             std::wstring fileName(notifyInfo->FileName,
                                   notifyInfo->FileNameLength / sizeof(wchar_t));
-            std::string fileNameUtf8 = utf8_encode(fileName);
-
-            switch (notifyInfo->Action) {
-            case FILE_ACTION_ADDED: fileEvent = "added: " + fileNameUtf8; break;
-            case FILE_ACTION_REMOVED: fileEvent = "removed: " + fileNameUtf8; break;
-            case FILE_ACTION_MODIFIED: fileEvent = "modified: " + fileNameUtf8; break;
-            case FILE_ACTION_RENAMED_OLD_NAME:
-                fileEvent = "renamed old name: " + fileNameUtf8;
-                break;
-            case FILE_ACTION_RENAMED_NEW_NAME:
-                fileEvent = "renamed new name: " + fileNameUtf8;
-                break;
-            default: fileEvent = "unknown: " + fileNameUtf8; break;
-            }
+            std::string fileEvent = actionToString(notifyInfo->Action) + wstringToString(fileName);
             std::cout << fileEvent << std::endl;
 
             if (notifyInfo->NextEntryOffset == 0) {
                 break;
             }
-            notifyInfo = (PFILE_NOTIFY_INFORMATION) ((LPBYTE) notifyInfo
-                                                     + notifyInfo->NextEntryOffset);
+            notifyInfo = reinterpret_cast<PFILE_NOTIFY_INFORMATION>(
+                reinterpret_cast<LPBYTE>(notifyInfo) + notifyInfo->NextEntryOffset);
         }
     }
 

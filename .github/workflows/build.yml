@@ -26,6 +26,9 @@ jobs:
           - macos-latest
           - ubuntu-latest
         build_type:
+          - "Debug"
+          - "Release"
+          - "MinSizeRel"
           - "RelWithDebInfo"
         generators:
           - "Ninja"

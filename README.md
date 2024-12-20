@@ -30,7 +30,8 @@
 19. [Icmp](/Icmp/icmp.hpp)——linux icmp协议的简单封装；
 20. [LinkedList](/LinkedList/linkedlist.hpp)——链表的相关操作，插入、移除、反转、打印；
 21. [Memcpy](/Memcpy/memcpy.hpp)——`memcpy`函数实现；
-22. [MonitorDir](/MonitorDir/monitordir.hpp)——windows(`ReadDirectoryChangesW`)，macos(`FSEvents`)和linux(`inotify`)目录监控的简单例子；
+22. [MonitorDir](/MonitorDir/monitordir.hpp)——windows(`ReadDirectoryChangesW`)，macos(`FSEvents`)和linux(`fanotify`和`inotify`)目录监控的简单例子；
+    1. `fanotify`中使用global模式，在`fanotify_mark`中加入`FAN_MARK_FILESYSTEM`这个`flag`，可以所有在指定文件系统上的事件都会被监控，然后可以根据指定的监控的文件夹目录过滤需要的事件，这个功能比`inotify`更强大；
 23. [Mutex](/Mutex/mutex.hpp)——使用std::atomic_flag实现的简单互斥锁和自旋锁；
 24. [OpenSSL](/OpenSSL)——openssl的一些例子；
     1. [aes](/OpenSSL/openssl_aes.cc)——aes加解密的例子；
