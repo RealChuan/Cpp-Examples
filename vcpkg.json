@@ -4,11 +4,12 @@
   "version": "0.0.1",
   "description": "manifest",
   "dependencies": [
-    "glog",
     "breakpad",
     "benchmark",
-    "gtest",
     "crashpad",
+    "efsw",
+    "glog",
+    "gtest",
     {
       "name": "openssl",
       "features": [
