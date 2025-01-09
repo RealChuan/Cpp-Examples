@@ -1,54 +1,50 @@
 #include "httpclient_async.hpp"
 
+#include <iostream>
+#include <thread>
+
 auto main() -> int
 {
+    auto url = "http://www.baidu.com?name=hello&age=18";
+
     HttpClientAsync client;
 
-    client.get("http://www.baidu.com", {}, [](const std::string &response) {
-        std::cout << "GET response: " << std::endl;
+    // client.get("http://www.baidu.com", {}, [](const std::string &response) {
+    //     std::cout << "GET response: " << std::endl;
+    //     std::cout << response << std::endl;
+    // });
+
+    client.post(url, "hello world", {}, [](const std::string &response) {
+        std::cout << "POST response: " << std::endl;
         std::cout << response << std::endl;
     });
 
-    client.post("http://www.baidu.com",
-                "hello world",
-                {{"Content-Type", "text/plain"}},
-                [](const std::string &response) {
-                    std::cout << "POST response: " << std::endl;
-                    std::cout << response << std::endl;
-                });
+    client.put(url, "hello world", {}, [](const std::string &response) {
+        std::cout << "PUT response: " << std::endl;
+        std::cout << response << std::endl;
+    });
 
-    client.put("http://www.baidu.com",
-               "hello world",
-               {{"Content-Type", "text/plain"}},
-               [](const std::string &response) {
-                   std::cout << "PUT response: " << std::endl;
-                   std::cout << response << std::endl;
-               });
-
-    client.del("http://www.baidu.com", {}, [](const std::string &response) {
+    client.del(url, {}, [](const std::string &response) {
         std::cout << "DELETE response: " << std::endl;
         std::cout << response << std::endl;
     });
 
-    client.options("http://www.baidu.com", {}, [](const std::string &response) {
+    client.options(url, {}, [](const std::string &response) {
         std::cout << "OPTIONS response: " << std::endl;
         std::cout << response << std::endl;
     });
 
-    client.patch("http://www.baidu.com",
-                 "hello world",
-                 {{"Content-Type", "text/plain"}},
-                 [](const std::string &response) {
-                     std::cout << "PATCH response: " << std::endl;
-                     std::cout << response << std::endl;
-                 });
+    client.patch(url, "hello world", {}, [](const std::string &response) {
+        std::cout << "PATCH response: " << std::endl;
+        std::cout << response << std::endl;
+    });
 
-    client.sendCustomRequest("http://www.baidu.com", "GET", "", {}, [](const std::string &response) {
+    client.sendCustomRequest(url, "GET", "", {}, [](const std::string &response) {
         std::cout << "Custom request response: " << std::endl;
         std::cout << response << std::endl;
     });
 
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     return 0;
 }
