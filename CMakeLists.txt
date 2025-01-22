@@ -68,6 +68,7 @@ add_subdirectory(MonitorDir)
 add_subdirectory(MonitorDir_EFSW)
 add_subdirectory(Mutex)
 add_subdirectory(OpenSSL)
+add_subdirectory(SafeCallback)
 add_subdirectory(Thread)
 
 if(CMAKE_HOST_LINUX)

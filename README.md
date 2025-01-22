@@ -46,10 +46,11 @@
     7. [sm4](/OpenSSL/openssl_sm4.cc)——sm4加解密的例子；
     8. [x509](/OpenSSL/openssl_x509.cc)——x509证书的例子；
     9. [bash](/OpenSSL/openssl_bash.sh)——openssl命令行的例子；
-26. [Server](/Server)——linux server的一些例子；
+26. [SafeCallback](/SafeCallback/safecallback.hpp)——生命周期安全的回调函数的实现，参考[muduo WeakCallback](https://github.com/chenshuo/muduo/blob/cpp17/muduo/base/WeakCallback.h)；
+27. [Server](/Server)——linux server的一些例子；
     1. [server_epoll](/Server/server_epoll.cc)——epoll的例子；
     2. [server_poll](/Server/server_poll.cc)——poll的例子；
     3. [server_select](/Server/server_select.cc)——select的例子；
-27. [Thread](/Thread/)——基于std::thread实现的线程类，包括线程池；
+28. [Thread](/Thread/)——基于std::thread实现的线程类，包括线程池；
     1. [Thread](/Thread/thread.hpp)——线程类；
     2. [ThreadPool](/Thread/threadpool.hpp)——线程池；
