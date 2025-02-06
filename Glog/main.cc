@@ -1,6 +1,7 @@
 #include <glog/logging.h>
 
 #include <filesystem>
+#include <format>
 
 auto main(int argc, char **argv) -> int
 {
@@ -23,15 +24,15 @@ auto main(int argc, char **argv) -> int
 
     std::string message("Hello World");
 
-    LOG(INFO) << message;
-    LOG(WARNING) << message;
-    LOG(ERROR) << message;
-    // LOG(FATAL) << message;
+    LOG(INFO) << std::format("{}, This is a info message", message);
+    LOG(WARNING) << std::format("{}, This is a warning message", message);
+    LOG(ERROR) << std::format("{}, This is a error message", message);
+    // LOG(FATAL) << std::format("{}, This is a fatal message", message);
 
-    DLOG(INFO) << message;
-    DLOG(WARNING) << message;
-    DLOG(ERROR) << message;
-    // DLOG(FATAL) << message;
+    DLOG(INFO) << std::format("{}, This is a debug info message", message);
+    DLOG(WARNING) << std::format("{}, This is a debug warning message", message);
+    DLOG(ERROR) << std::format("{}, This is a debug error message", message);
+    // DLOG(FATAL) << std::format("{}, This is a debug fatal message", message);
 
     google::ShutdownGoogleLogging();
     return 0;
