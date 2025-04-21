@@ -1,0 +1,54 @@
+name: 'Install Dependencies'
+description: 'Install dependencies for the environment'
+
+runs:
+  using: 'composite'
+
+  steps:
+    - name: Install Custom VCPKG
+      uses: RealChuan/install-vcpkg@main
+      with:
+        repo: 'https://github.com/RealChuan/vcpkg.git'
+        branch: 'dev'
+        
+    - name: Update vcpkg manifest baseline
+      shell: bash
+      run: |
+        vcpkg x-update-baseline
+
+    - name: Cache vcpkg
+      uses: actions/cache@v4
+      with: 
+        path: ${{ github.workspace }}/build/vcpkg_installed
+        key: ${{ runner.os }}-vcpkg-installed-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-installed-
+          ${{ runner.os }}-
+
+    - name: Install dependencies on windows
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        choco install ninja
+        ninja --version
+        cmake --version
+
+    - name: Install dependencies on macos
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew install nasm python-setuptools
+        ninja --version
+        cmake --version
+        clang --version
+
+    - name: Install dependencies on linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install ninja-build clang
+        ninja --version
+        cmake --version
+        gcc --version
+        

@@ -34,53 +34,11 @@ jobs:
           - "Ninja"
   
     steps:      
-      - name: Install dependencies on windows
-        if: startsWith(matrix.os, 'windows')
-        run: |
-          choco install ninja
-          ninja --version
-          cmake --version
-      - name: Install dependencies on macos
-        if: startsWith(matrix.os, 'macos')
-        shell: bash
-        run: |
-          brew install ninja python-setuptools
-          ninja --version
-          cmake --version
-          clang --version
-      - name: Install dependencies on ubuntu
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install ninja-build clang
-          ninja --version
-          cmake --version
-          gcc --version
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Install custom vcpkg
-        uses: RealChuan/install-vcpkg@main
-        with:
-          repo: 'https://github.com/RealChuan/vcpkg.git'
-          branch: 'dev'
-
-      - name: Update vcpkg manifest baseline
-        shell: bash
-        run: |
-          vcpkg x-update-baseline
-
-      - name: Cache vcpkg
-        uses: actions/cache@v4
-        with: 
-          path: ${{ github.workspace }}/build/vcpkg_installed
-          key: ${{ matrix.os }}-vcpkg-installed-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            ${{ matrix.os }}-vcpkg-installed-${{ runner.os }}-
-            ${{ matrix.os }}-vcpkg-installed-
-            ${{ matrix.os }}-
+      - uses: ./.github/actions/install-dependencies
 
       - name: Configure and build windows
         if: startsWith(matrix.os, 'windows')

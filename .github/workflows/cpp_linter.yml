@@ -1,0 +1,55 @@
+name: CPP Linter
+
+on: 
+  push:
+    paths-ignore: 
+        - '.clang*'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+  pull_request:
+    paths-ignore: 
+        - '.clang*'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: ./.github/actions/install-dependencies
+
+      - name: Configure and build on ubuntu
+        shell: bash
+        run: |
+          cmake \
+            -S . \
+            -B ./build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -G "Ninja" \
+            || (cat ./build/vcpkg_installed/vcpkg/issue_body.md && exit 1)
+          cmake --build ./build --config Release
+    
+      - uses: cpp-linter/cpp-linter-action@main
+        id: linter
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: file
+          files-changed-only: false
+          thread-comments: false
+          step-summary: true
+          database: build
+          ignore: .github | build
+          ignore-tidy: .github | MonitorDir/monitordir_win.cc | MonitorDir/monitordir_mac.cc
+
+      - name: Fail fast?!
+        if: steps.linter.outputs.clang-tidy-checks-failed > 0
+        run: exit 1

@@ -1,0 +1,43 @@
+name: CodeQL
+
+on: 
+  push:
+    paths-ignore: 
+        - '.clang*'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+  pull_request:
+    paths-ignore: 
+        - '.clang*'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+        
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+  
+
+jobs:
+  CodeQL:
+    runs-on: ubuntu-latest
+  
+    steps:      
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: ./.github/actions/install-dependencies
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+            languages: cpp
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        

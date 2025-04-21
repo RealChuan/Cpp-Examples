@@ -51,9 +51,9 @@ auto fibonacci_search(const std::vector<T> &v, const T &value) -> int
     while (low <= high) {                     // 当最小下标小于等于最大下标时
         int mid = low + fibonacci[k - 1] - 1; // 取黄金分割点
         if (mid >= v.size()) {                // 如果黄金分割点大于等于数组长度
-            mid = v.size() - 1; // 就将黄金分割点设置为数组最后一个元素的下标
+            mid = v.size() - 1;               // 就将黄金分割点设置为数组最后一个元素的下标
         }
-        if (v[mid] == value) {  // 如果中间元素等于要查找的元素，就返回下标
+        if (v[mid] == value) { // 如果中间元素等于要查找的元素，就返回下标
             return mid;
         } else if (v[mid] < value) { // 如果中间元素小于要查找的元素，就在右半部分查找
             low = mid + 1;
@@ -96,19 +96,19 @@ auto linear_index_search(const std::vector<T> &v, const T &value) -> int
 template<typename T>
 auto kmp_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
 {
-    std::vector<int> next(pattern.size());     // next数组
-    next[0] = -1;                              // next数组的第一个元素为-1
-    int k = -1;                                // next数组的下标
-    for (int i = 1; i < pattern.size(); ++i) { // 生成next数组
+    std::vector<int> next(pattern.size());               // next数组
+    next[0] = -1;                                        // next数组的第一个元素为-1
+    int k = -1;                                          // next数组的下标
+    for (int i = 1; i < pattern.size(); ++i) {           // 生成next数组
         while (k > -1 && pattern[k + 1] != pattern[i]) { // 如果k大于-1且下一个元素不等于当前元素
             k = next[k];
         }
         if (pattern[k + 1] == pattern[i]) { // 如果下一个元素等于当前元素
             ++k;
         }
-        next[i] = k;                               // 将k赋值给next数组的当前元素
+        next[i] = k; // 将k赋值给next数组的当前元素
     }
-    k = -1;                                        // next数组的下标
+    k = -1; // next数组的下标
     for (int i = 0; i < v.size(); ++i) {
         while (k > -1 && pattern[k + 1] != v[i]) { // 如果k大于-1且下一个元素不等于当前元素
             k = next[k];
@@ -146,7 +146,7 @@ auto bm_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
         bc[pattern[i]] = i;
     }
 
-    std::vector<int> suffix(pattern.size(), -1); // 好后缀
+    std::vector<int> suffix(pattern.size(), -1);     // 好后缀
     std::vector<bool> prefix(pattern.size(), false); // 好后缀的前缀子串是否在模式串的前缀子串中存在
     for (int i = 0; i < pattern.size() - 1; ++i) {
         int j = i;
@@ -161,7 +161,7 @@ auto bm_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
         }
     }
     int i = 0;
-    while (i <= v.size() - pattern.size()) {       // 从头到尾遍历
+    while (i <= v.size() - pattern.size()) { // 从头到尾遍历
         int j = pattern.size() - 1;
         while (j >= 0 && v[i + j] == pattern[j]) { // 从后往前比较
             --j;
@@ -171,7 +171,7 @@ auto bm_search(const std::vector<T> &v, const std::vector<T> &pattern) -> int
         }
         i += std::max(move_by_suffix(j, suffix, prefix), j - bc[v[i + j]]); // 将模式串向后移动
     }
-    return -1;                                                              // not found
+    return -1; // not found
 }
 
 // Sunday查找
@@ -183,7 +183,7 @@ auto sunday_search(const std::vector<T> &v, const std::vector<T> &pattern) -> in
         bc[pattern[i]] = i;
     }
     int i = 0;
-    while (i <= v.size() - pattern.size()) {                   // 从头到尾遍历
+    while (i <= v.size() - pattern.size()) { // 从头到尾遍历
         int j = 0;
         while (j < pattern.size() && v[i + j] == pattern[j]) { // 从前往后比较
             ++j;
@@ -196,7 +196,7 @@ auto sunday_search(const std::vector<T> &v, const std::vector<T> &pattern) -> in
         }
         i += pattern.size() - bc[v[i + pattern.size()]]; // 将模式串向后移动
     }
-    return -1;                                           // not found
+    return -1; // not found
 }
 
 // Rabin-Karp查找
