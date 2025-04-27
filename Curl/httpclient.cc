@@ -23,20 +23,20 @@ public:
         setHeaderCallback();
     }
 
-    void setVerbose()
+    void setVerbose() const
     {
         assert(curl != nullptr);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     }
 
-    void setHeaderCallback()
+    void setHeaderCallback() const
     {
         assert(curl != nullptr);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, headerCallback);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, q_ptr);
     }
 
-    void setErrorCallback()
+    void setErrorCallback() const
     {
         assert(curl != nullptr);
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, q_ptr->d_ptr->errorBuffer.data());
@@ -46,6 +46,8 @@ public:
     {
         assert(curl != nullptr);
         for (const auto &[key, value] : std::as_const(headers)) {
+            std::string data = key;
+            data += ": " + value;
             this->headers = curl_slist_append(this->headers, (key + ": " + value).c_str());
         }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, this->headers);
@@ -66,7 +68,7 @@ public:
         headers = nullptr;
     }
 
-    void printError()
+    void printError() const
     {
         if (!errorBuffer.empty()) {
             std::cerr << "Error: " << errorBuffer << std::endl;
@@ -91,7 +93,7 @@ public:
     {
         auto *client = static_cast<HttpClient *>(userdata);
         assert(client->d_ptr->file.is_open());
-        client->d_ptr->file.write(ptr, size * nmemb);
+        client->d_ptr->file.write(ptr, static_cast<std::streamsize>(size * nmemb));
         return size * nmemb;
     }
 
@@ -111,7 +113,7 @@ public:
         auto *client = static_cast<HttpClient *>(userdata);
         auto &file = client->d_ptr->file;
         assert(file.is_open());
-        file.read(ptr, size * nmemb);
+        file.read(ptr, static_cast<std::streamsize>(size * nmemb));
         return file.gcount();
     }
 

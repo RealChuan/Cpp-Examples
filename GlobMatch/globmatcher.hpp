@@ -10,7 +10,7 @@ class GlobMatcher : noncopyable
 public:
     explicit GlobMatcher(const std::string &patternFile);
 
-    bool match(const std::string &text);
+    auto match(const std::string &text) -> bool;
 
 private:
     std::vector<std::string> m_patterns;

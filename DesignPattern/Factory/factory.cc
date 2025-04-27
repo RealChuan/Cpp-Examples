@@ -2,7 +2,10 @@
 
 #include <iostream>
 
-Factory::Factory() {}
+Factory::Factory()
+{
+    std::cout << "Factory" << std::endl;
+}
 
 Factory::~Factory()
 {
@@ -19,7 +22,9 @@ class ComputerFactory : public Factory
 public:
     ComputerFactory()
         : Factory()
-    {}
+    {
+        std::cout << "ComputerFactory" << std::endl;
+    }
     virtual ~ComputerFactory() { std::cout << "~ComputerFactory" << std::endl; }
 
     virtual void name() { std::cout << "ComputerFactory" << std::endl; }
@@ -30,7 +35,9 @@ class PhoneFactory : public Factory
 public:
     PhoneFactory()
         : Factory()
-    {}
+    {
+        std::cout << "PhoneFactory" << std::endl;
+    }
     virtual ~PhoneFactory() { std::cout << "~PhoneFactory" << std::endl; }
 
     virtual void name() { std::cout << "PhoneFactory" << std::endl; }

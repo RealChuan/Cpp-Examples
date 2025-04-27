@@ -98,17 +98,17 @@ void show_info(int connfd)
 /对文件描述符的操作必须先使用fcntl函数获得其标志，然后再设置标志/
 /----------------------------------------------------------*/
 //配置非阻塞模式
-void setNonBlocking(int fd)
+void setNonBlocking(int fileDescriptor)
 {
-    int flags = fcntl(fd, F_GETFL, 0);
+    int flags = fcntl(fileDescriptor, F_GETFL, 0);
     flags |= O_NONBLOCK;
-    fcntl(fd, F_SETFL, flags);
+    fcntl(fileDescriptor, F_SETFL, flags);
 }
 
 //配置为阻塞模式
-void setBlock(int fd)
+void setBlock(int fileDescriptor)
 {
-    int flags = fcntl(fd, F_GETFL, 0);
+    int flags = fcntl(fileDescriptor, F_GETFL, 0);
     flags &= ~O_NONBLOCK;
-    fcntl(fd, F_SETFL, flags);
+    fcntl(fileDescriptor, F_SETFL, flags);
 }

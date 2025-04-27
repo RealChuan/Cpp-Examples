@@ -1,5 +1,4 @@
-#ifndef OBSERVER_HPP
-#define OBSERVER_HPP
+#pragma once
 
 #include <iostream>
 #include <list>
@@ -64,5 +63,3 @@ private:
     std::list<std::weak_ptr<Observer>> m_Observers;
     int m_state = 0;
 };
-
-#endif // OBSERVER_HPP

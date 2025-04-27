@@ -16,7 +16,7 @@ public:
     using Task = std::function<void()>;
 
     Thread() = default;
-    explicit Thread(Task task) { setTask(task); }
+    explicit Thread(Task task) { setTask(std::move(task)); }
     ~Thread() { stop(); }
 
     void setTask(Task task) { m_task = std::move(task); }
@@ -46,9 +46,9 @@ public:
         m_condition.wait(lock, [this]() { return m_running.load(); });
     }
 
-    auto isRunning() const -> bool { return m_running; }
+    [[nodiscard]] auto isRunning() const -> bool { return m_running; }
 
-    auto getThreadId() const -> std::thread::id { return m_thread.get_id(); }
+    [[nodiscard]] auto getThreadId() const -> std::thread::id { return m_thread.get_id(); }
 
     static void yield() { std::this_thread::yield(); }
 
@@ -64,9 +64,9 @@ public:
 
     static auto hardwareConcurrency() -> unsigned int
     {
-        unsigned int n = std::thread::hardware_concurrency(); // 如果不支持，返回0
-        assert(n > 0);
-        return n;
+        auto availableCores = std::thread::hardware_concurrency(); // 如果不支持，返回0
+        assert(availableCores > 0);
+        return availableCores;
     }
 
 private:

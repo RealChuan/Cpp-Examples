@@ -17,42 +17,45 @@ public:
     HttpClientAsync();
     ~HttpClientAsync();
 
-    CURL *get(const std::string &url, const Headers &headers = {}, Callback callback = nullptr);
-    CURL *post(const std::string &url,
-               const std::string &data,
-               const Headers &headers = {},
-               Callback callback = nullptr);
-    CURL *put(const std::string &url,
+    auto get(const std::string &url, const Headers &headers = {}, Callback callback = nullptr)
+        -> CURL *;
+    auto post(const std::string &url,
               const std::string &data,
               const Headers &headers = {},
-              Callback callback = nullptr);
-    CURL *del(const std::string &url, const Headers &headers = {}, Callback callback = nullptr);
-    CURL *options(const std::string &url, const Headers &headers = {}, Callback callback = nullptr);
-    CURL *patch(const std::string &url,
-                const std::string &data,
-                const Headers &headers = {},
-                Callback callback = nullptr);
+              Callback callback = nullptr) -> CURL *;
+    auto put(const std::string &url,
+             const std::string &data,
+             const Headers &headers = {},
+             Callback callback = nullptr) -> CURL *;
+    auto del(const std::string &url, const Headers &headers = {}, Callback callback = nullptr)
+        -> CURL *;
+    auto options(const std::string &url, const Headers &headers = {}, Callback callback = nullptr)
+        -> CURL *;
+    auto patch(const std::string &url,
+               const std::string &data,
+               const Headers &headers = {},
+               Callback callback = nullptr) -> CURL *;
 
-    CURL *sendCustomRequest(const std::string &url,
-                            const std::string &method,
-                            const std::string &data,
-                            const Headers &headers,
-                            Callback callback);
+    auto sendCustomRequest(const std::string &url,
+                           const std::string &method,
+                           const std::string &data,
+                           const Headers &headers,
+                           Callback callback) -> CURL *;
 
     void cancel(CURL *handle);
 
-    CURL *download(const std::string &url,
-                   const std::filesystem::path &path,
-                   const Headers &headers = {},
-                   Callback callback = nullptr);
-    CURL *upload_put(const std::string &url,
+    auto download(const std::string &url,
+                  const std::filesystem::path &path,
+                  const Headers &headers = {},
+                  Callback callback = nullptr) -> CURL *;
+    auto upload_put(const std::string &url,
+                    const std::filesystem::path &path,
+                    const Headers &headers = {},
+                    Callback callback = nullptr) -> CURL *;
+    auto upload_post(const std::string &url,
                      const std::filesystem::path &path,
                      const Headers &headers = {},
-                     Callback callback = nullptr);
-    CURL *upload_post(const std::string &url,
-                      const std::filesystem::path &path,
-                      const Headers &headers = {},
-                      Callback callback = nullptr);
+                     Callback callback = nullptr) -> CURL *;
 
 private:
     class HttpClientAsyncPrivate;

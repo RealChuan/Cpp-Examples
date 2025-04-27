@@ -1,7 +1,8 @@
-#ifndef FACTORY_HPP
-#define FACTORY_HPP
+#pragma once
 
-class Factory
+#include <utils/object.hpp>
+
+class Factory : noncopyable
 {
 public:
     Factory();
@@ -15,8 +16,6 @@ public:
     virtual void name();
 };
 
-enum FactoryType { Computer, Phone };
+enum FactoryType : int { Computer, Phone };
 
 auto createFactory(FactoryType type) -> Factory *;
-
-#endif // FACTORY_HPP

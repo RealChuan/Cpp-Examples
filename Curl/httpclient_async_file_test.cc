@@ -6,11 +6,39 @@
 #include <thread>
 #include <utility>
 
-static HttpClientAsync httpClientAsync;
-static std::condition_variable cv;
-static std::mutex mutex;
+class AsyncHttpClientManager
+{
+public:
+    static auto getHttpClientAsync() -> HttpClientAsync &
+    {
+        static HttpClientAsync httpClientAsync;
+        return httpClientAsync;
+    }
 
-static std::vector<std::string> paths = {"", "curl", "curl/1", "curl/1/2", "curl/1/2/3"};
+    static auto getConditionVariable() -> std::condition_variable &
+    {
+        static std::condition_variable conditionVariable;
+        return conditionVariable;
+    }
+
+    static auto getMutex() -> std::mutex &
+    {
+        static std::mutex mutex;
+        return mutex;
+    }
+
+    static auto getPaths() -> std::vector<std::string> &
+    {
+        static std::vector<std::string> paths = {"", "curl", "curl/1", "curl/1/2", "curl/1/2/3"};
+        return paths;
+    }
+};
+
+// 使用时
+HttpClientAsync &httpClientAsync = AsyncHttpClientManager::getHttpClientAsync();
+std::condition_variable &cv = AsyncHttpClientManager::getConditionVariable();
+std::mutex &mutex = AsyncHttpClientManager::getMutex();
+std::vector<std::string> &paths = AsyncHttpClientManager::getPaths();
 
 void wait()
 {
@@ -20,26 +48,27 @@ void wait()
 
 void test_download(const std::string &filename)
 {
-    auto filepath = std::filesystem::current_path() / filename;
-    auto url = "http://127.0.0.1:8080/files/" + filename;
+    const auto filepath = std::filesystem::current_path() / filename;
+    const auto url = "http://127.0.0.1:8080/files/" + filename;
 
     httpClientAsync.download(url, filepath, {}, [](const std::string &) { cv.notify_one(); });
     wait();
     // 等待Content销毁，fstream完全关闭
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    constexpr int kSleepDuration = 200;
+    std::this_thread::sleep_for(std::chrono::milliseconds(kSleepDuration));
 }
 
 void test_upload_put(const std::string &filename)
 {
-    auto filepath = std::filesystem::current_path() / filename;
-    auto url = "http://127.0.0.1:8080/files/" + filename;
+    const auto filepath = std::filesystem::current_path() / filename;
+    const auto url = "http://127.0.0.1:8080/files/" + filename;
     httpClientAsync.upload_put(url, filepath, {}, [](const std::string &) { cv.notify_one(); });
     wait();
 }
 
 void test_upload_post(const std::string &path, const std::string &filename)
 {
-    auto filepath = std::filesystem::current_path() / filename;
+    const auto filepath = std::filesystem::current_path() / filename;
     std::string url = "http://127.0.0.1:8080/files";
     if (!path.empty()) {
         url += "/" + path;
@@ -50,15 +79,15 @@ void test_upload_post(const std::string &path, const std::string &filename)
 
 void test_delete(const std::string &filename)
 {
-    auto url = "http://127.0.0.1:8080/files/" + filename;
+    const auto url = "http://127.0.0.1:8080/files/" + filename;
     httpClientAsync.del(url, {}, [](const std::string &) { cv.notify_one(); });
     wait();
 }
 
 TEST(UploadTest, UploadPutFile)
 {
-    auto filename = "curl_async_upload_put_file.txt";
-    auto data = "curl async upload put file data";
+    const auto *filename = "curl_async_upload_put_file.txt";
+    const auto *data = "curl async upload put file data";
     for (const auto &path : std::as_const(paths)) {
         std::string filepath = filename;
         std::string filedata = data;
@@ -80,8 +109,8 @@ TEST(UploadTest, UploadPutFile)
 
 TEST(UploadTest, UploadPostFile)
 {
-    auto filename = "curl_async_upload_post_file.txt";
-    auto data = "curl async upload post file data";
+    const auto *filename = "curl_async_upload_post_file.txt";
+    const auto *data = "curl async upload post file data";
     for (const auto &path : std::as_const(paths)) {
         std::string filepath = filename;
         std::string filedata = data;

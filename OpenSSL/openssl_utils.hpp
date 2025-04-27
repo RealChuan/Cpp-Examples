@@ -28,20 +28,21 @@ void openssl_error()
 
 auto toHex(const std::string &str) -> std::string
 {
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (auto c : str) {
-        ss << std::setw(2) << static_cast<int>(c);
+    std::stringstream stringStream;
+    stringStream << std::hex << std::setfill('0');
+    for (auto character : str) {
+        stringStream << std::setw(2) << static_cast<int>(character);
     }
-    return ss.str();
+    return stringStream.str();
 }
 
 auto fromHex(const std::string &str) -> std::string
 {
+    constexpr int HEX_BASE = 16;
     std::string ret;
     for (size_t i = 0; i < str.size(); i += 2) {
         std::string hex(str.substr(i, 2));
-        ret.push_back(static_cast<char>(std::stoi(hex, nullptr, 16)));
+        ret.push_back(static_cast<char>(std::stoi(hex, nullptr, HEX_BASE)));
     }
     return ret;
 }

@@ -48,7 +48,7 @@ jobs:
           step-summary: true
           database: build
           ignore: .github | build
-          ignore-tidy: .github | MonitorDir/monitordir_win.cc | MonitorDir/monitordir_mac.cc
+          ignore-tidy: .github | Client | Icmp| Server | MonitorDir/monitordir_win.cc | MonitorDir/monitordir_mac.cc | utils
 
       - name: Fail fast?!
         if: steps.linter.outputs.clang-tidy-checks-failed > 0

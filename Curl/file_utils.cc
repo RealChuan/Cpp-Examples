@@ -40,7 +40,7 @@ void assertFileData(const std::string &filename, const std::string &data)
     EXPECT_EQ(fileData, data);
 }
 
-auto formatBytes(double value, int precision) -> std::string
+auto formatBytes(int64_t value, int precision) -> std::string
 {
     std::vector<std::string> units = {"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
 

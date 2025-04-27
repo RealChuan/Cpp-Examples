@@ -1,5 +1,4 @@
-﻿#ifndef SINGLETON_HPP
-#define SINGLETON_HPP
+﻿#pragma once
 
 #include <utils/object.hpp>
 
@@ -9,18 +8,16 @@
 
 namespace Lazy {
 
-class Singleton
+class Singleton : noncopyable
 {
     Singleton() { std::cout << "Lazy Singleton" << std::endl; }
     ~Singleton() { std::cout << "Lazy ~Singleton" << std::endl; }
 
-    DISABLE_COPY_MOVE(Singleton)
-
 public:
     static Singleton &instance()
     {
-        static Singleton s; // C++11 thread safe
-        return s;
+        static Singleton singleton; // C++11 thread safe
+        return singleton;
     }
 };
 
@@ -28,15 +25,13 @@ public:
 
 namespace Hungry {
 
-class Singleton
+class Singleton : noncopyable
 {
     Singleton() { std::cout << "Hungry Singleton" << std::endl; }
     //~Singleton() { std::cout << "Hungry ~Singleton" << std::endl; }
 
-    DISABLE_COPY_MOVE(Singleton)
-
-    static std::unique_ptr<Singleton> s_singleton_ptr;
-    static std::mutex s_mutex;
+    static std::unique_ptr<Singleton> singletonPtr;
+    static std::mutex mutex;
 
 public:
     ~Singleton() { std::cout << "Hungry ~Singleton" << std::endl; }
@@ -44,11 +39,11 @@ public:
     // ① This the first way to implement Singleton
     // static Singleton &instance()
     // {
-    //     std::unique_lock locker(s_mutex);
-    //     if (!s_singleton_ptr) {
-    //         s_singleton_ptr.reset(new Singleton);
+    //     std::unique_lock locker(mutex);
+    //     if (!singletonPtr) {
+    //         singletonPtr.reset(new Singleton);
     //     }
-    //     return *s_singleton_ptr;
+    //     return *singletonPtr;
     // }
 
     // ② This the second way to implement Singleton
@@ -56,11 +51,11 @@ public:
     {
         static std::once_flag flag;
         std::call_once(flag, []() {
-            if (!s_singleton_ptr) {
-                s_singleton_ptr.reset(new Singleton);
+            if (!singletonPtr) {
+                singletonPtr.reset(new Singleton);
             }
         });
-        return *s_singleton_ptr;
+        return *singletonPtr;
     }
 };
 
@@ -69,13 +64,8 @@ public:
 namespace LazyTemplate {
 
 template<typename T>
-class Singleton
+class Singleton : noncopyable
 {
-    Singleton() = delete;
-    ~Singleton() = delete;
-
-    DISABLE_COPY_MOVE(Singleton)
-
 public:
     static T &instance()
     {
@@ -85,5 +75,3 @@ public:
 };
 
 } // namespace LazyTemplate
-
-#endif // SINGLETON_HPP

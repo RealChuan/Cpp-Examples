@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-class HttpClientAsync::HttpClientAsyncPrivate
+class HttpClientAsync::HttpClientAsyncPrivate : noncopyable
 {
 public:
     struct Context

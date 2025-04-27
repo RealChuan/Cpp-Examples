@@ -6,21 +6,32 @@
 #include <utility>
 
 template<typename F>
-class ScopeGuard : noncopyable
+class ScopeGuard
 {
+    DISABLE_COPY(ScopeGuard)
 public:
-    explicit ScopeGuard(F &&f) noexcept
-        : m_func(std::move(f))
+    ScopeGuard() = delete;
+
+    explicit ScopeGuard(F &&func) noexcept
+        : m_func(std::move(func))
     {}
 
-    explicit ScopeGuard(const F &f) noexcept
-        : m_func(f)
+    explicit ScopeGuard(const F &func) noexcept
+        : m_func(func)
     {}
 
     ScopeGuard(ScopeGuard &&other) noexcept
         : m_func(std::move(other.m_func))
         , m_invoke(std::exchange(other.m_invoke, false))
     {}
+
+    ScopeGuard &operator=(ScopeGuard &&other) noexcept
+    {
+        if (this != &other) {
+            m_func = std::move(other.m_func);
+            m_invoke = std::exchange(other.m_invoke, false);
+        }
+    }
 
     ~ScopeGuard() noexcept
     {
@@ -40,7 +51,7 @@ template<typename F>
 ScopeGuard(F (&)()) -> ScopeGuard<F (*)()>;
 
 template<typename F>
-[[nodiscard]] auto scopeGuard(F &&f) -> ScopeGuard<std::decay_t<F>>
+[[nodiscard]] auto scopeGuard(F &&func) -> ScopeGuard<std::decay_t<F>>
 {
-    return ScopeGuard<std::decay_t<F>>(std::forward<F>(f));
+    return ScopeGuard<std::decay_t<F>>(std::forward<F>(func));
 }

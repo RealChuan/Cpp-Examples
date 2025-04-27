@@ -36,10 +36,8 @@ private:
 
 class SpinMutexLocker : noncopyable
 {
-    SpinMutex *m_mutex = nullptr;
-
 public:
-    SpinMutexLocker(SpinMutex *mutex)
+    explicit SpinMutexLocker(SpinMutex *mutex)
         : m_mutex(mutex)
     {
         assert(m_mutex);
@@ -51,4 +49,7 @@ public:
         assert(m_mutex);
         m_mutex->unlock();
     }
+
+private:
+    SpinMutex *m_mutex = nullptr;
 };

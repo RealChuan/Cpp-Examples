@@ -1,14 +1,11 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#pragma once
 
-int socketListenBind();
+auto socketListenBind() -> int;
 
-int server_accept(int serverfd);
+auto server_accept(int serverfd) -> int;
 
 void show_info(int connfd);
 
-void setNonBlocking(int fd);
+void setNonBlocking(int fileDescriptor);
 
-void setBlock(int fd);
-
-#endif // SOCKET_H
+void setBlock(int fileDescriptor);
