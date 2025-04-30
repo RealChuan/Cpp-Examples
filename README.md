@@ -51,6 +51,6 @@
     2. [server_poll](/Server/server_poll.cc)——poll的例子；
     3. [server_select](/Server/server_select.cc)——select的例子；
 23. [SpinMutex](/SpinMutex)——使用std::atomic_flag实现的简单互斥锁和自旋锁；
-24. [Thread](/Thread/)——基于std::thread实现的线程类，包括线程池；
+24. [Thread](/Thread/)——基于std::jthread实现的线程类，包括线程池（`Apple Clang`不支持）；
     1. [Thread](/Thread/thread.hpp)——线程类；
     2. [ThreadPool](/Thread/threadpool.hpp)——线程池；

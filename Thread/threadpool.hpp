@@ -1,10 +1,7 @@
 #pragma once
 
+#include "queue.hpp"
 #include "thread.hpp"
-
-#include <iostream>
-#include <semaphore>
-#include <queue>
 
 class ThreadPool : noncopyable
 {
@@ -13,25 +10,27 @@ public:
 
     explicit ThreadPool(uint64_t maxTasks = static_cast<uint64_t>(Thread::hardwareConcurrency()) * 4,
                         uint32_t maxThreads = Thread::hardwareConcurrency())
-        : m_maxTasks(maxTasks)
-        , m_maxThreads(maxThreads)
+        : m_maxThreads(maxThreads)
+        , m_queue(maxTasks)
     {
-        assert(m_maxTasks > 0);
-        assert(m_maxThreads > 0);
+        assert(maxTasks > 0);
+        assert(maxThreads > 0);
     }
+
     ~ThreadPool()
     {
-        if (m_running.load()) {
+        if (isRunning()) {
             stop();
         }
     }
 
     void start()
     {
-        assert(!m_running.load());
-        m_running.store(true);
-        for (int i = 0; i < m_maxThreads; ++i) {
-            auto *thread = new Thread([this] { runInThread(); });
+        assert(!isRunning());
+        m_queue.start();
+
+        for (uint32_t i = 0; i < m_maxThreads; ++i) {
+            auto *thread = new Thread([this](std::stop_token token) { runInThread(token); });
             m_threads.emplace_back(thread);
             thread->start();
         }
@@ -39,81 +38,73 @@ public:
 
     void stop()
     {
-        assert(m_running.load());
-        m_running.store(false);
-        m_emptyCondition.notify_all();
-        m_fullCondition.notify_all();
-        for (auto &thread : m_threads) {
-            thread->stop();
-        }
+        m_queue.stop();
         m_threads.clear();
     }
 
     void waitForDone()
     {
-        assert(m_running.load());
-        std::binary_semaphore semaphore(0);
-        addTask([&]() { semaphore.release(); });
-        semaphore.acquire();
-    }
-
-    void addTask(Task task)
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while (m_tasks.size() >= m_maxTasks && m_running.load()) {
-            m_fullCondition.wait(lock);
-        }
-        if (!m_running.load()) {
+        if (!isRunning()) {
             return;
         }
-        m_tasks.push(std::move(task));
-        m_emptyCondition.notify_one();
+
+        while (!m_allDone.load()) {
+            m_allDone.wait(false);
+        }
+    }
+
+    bool addTask(Task task)
+    {
+        if (!isRunning()) {
+            return false;
+        }
+
+        return m_queue.push(std::move(task), [&]() {
+            m_allDone.store(false);
+            m_taskCount.fetch_add(1);
+        });
     }
 
     void clearTasks()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        std::queue<Task>().swap(m_tasks);
+        m_queue.clear();
+        m_taskCount.store(0);
+        notifyAllDone();
     }
 
     [[nodiscard]] auto activeThreadCount() const -> std::size_t { return m_threads.size(); }
-    [[nodiscard]] auto queuedTaskCount() const -> std::size_t
+
+    [[nodiscard]] auto queuedTaskCount() const -> std::size_t { return m_queue.size(); }
+
+    [[nodiscard]] auto isRunning() const -> bool
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        return m_tasks.size();
+        return m_threads.empty() ? false : m_threads[0]->isRunning();
     }
 
-    [[nodiscard]] auto isRunning() const -> bool { return m_running.load(); }
-
 private:
-    void runInThread()
+    void runInThread(std::stop_token token)
     {
-        while (m_running.load()) {
+        while (!token.stop_requested()) {
             Task task;
-            {
-                std::unique_lock<std::mutex> lock(m_mutex);
-                while (m_tasks.empty() && m_running.load()) {
-                    m_emptyCondition.wait(lock);
-                }
-                if (!m_running.load()) {
-                    return;
-                }
-                task = std::move(m_tasks.front());
-                m_tasks.pop();
-                m_fullCondition.notify_one();
+            if (m_queue.pop(task)) {
+                task(token);
+                m_taskCount.fetch_sub(1);
+                notifyAllDone();
             }
-            task();
         }
     }
 
-    uint32_t m_maxThreads = 0;
-    uint64_t m_maxTasks = 0;
-    std::atomic_bool m_running = false;
+    void notifyAllDone()
+    {
+        if (m_taskCount.load() == 0) {
+            m_allDone.store(true);
+            m_allDone.notify_all();
+        }
+    }
 
-    mutable std::mutex m_mutex;
-    std::condition_variable m_emptyCondition;
-    std::condition_variable m_fullCondition;
-
-    std::queue<Task> m_tasks;
+    uint32_t m_maxThreads;
+    Queue<Task> m_queue;
+    std::atomic_uint64_t m_taskCount{0};
+    std::atomic_bool m_allDone{true};
     std::vector<std::unique_ptr<Thread>> m_threads;
 };

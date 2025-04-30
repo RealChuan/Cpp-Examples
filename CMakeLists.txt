@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.25.1)
 
 include(cmake/vcpkg.cmake)
 
-# 设定工程名
 project(
   Cpp-Examples
   VERSION 0.0.1
@@ -69,12 +68,14 @@ add_subdirectory(MonitorDir_EFSW)
 add_subdirectory(OpenSSL)
 add_subdirectory(SafeCallback)
 add_subdirectory(SpinMutex)
-add_subdirectory(Thread)
 
-if(CMAKE_HOST_LINUX)
+if(CMAKE_HOST_WIN32)
+  add_subdirectory(Thread)
+elseif(CMAKE_HOST_LINUX)
   add_subdirectory(Client)
   add_subdirectory(Icmp)
   add_subdirectory(Server)
+  add_subdirectory(Thread)
 endif()
 
 include(cmake/build_info.cmake)
