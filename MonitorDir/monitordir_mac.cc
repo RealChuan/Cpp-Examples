@@ -3,83 +3,90 @@
 #include <CoreServices/CoreServices.h>
 
 #include <iostream>
-#include <thread>
 
 std::string eventFlagsToString(FSEventStreamEventFlags eventFlags)
 {
+    std::cout << "FSEventStreamEventFlags: " << std::to_string(eventFlags) << std::endl;
+
+    std::string text;
     if ((eventFlags & kFSEventStreamEventFlagNone) != 0U) {
-        return "None: ";
+        text += "None";
     }
     if ((eventFlags & kFSEventStreamEventFlagMustScanSubDirs) != 0U) {
-        return "MustScanSubDirs: ";
+        text += "MustScanSubDirs ";
     }
     if ((eventFlags & kFSEventStreamEventFlagUserDropped) != 0U) {
-        return "UserDropped: ";
+        text += "UserDropped ";
     }
     if ((eventFlags & kFSEventStreamEventFlagKernelDropped) != 0U) {
-        return "KernelDropped: ";
+        text += "KernelDropped ";
     }
     if ((eventFlags & kFSEventStreamEventFlagEventIdsWrapped) != 0U) {
-        return "EventIdsWrapped: ";
+        text += "EventIdsWrapped ";
     }
     if ((eventFlags & kFSEventStreamEventFlagHistoryDone) != 0U) {
-        return "HistoryDone: ";
+        text += "HistoryDone ";
     }
     if ((eventFlags & kFSEventStreamEventFlagRootChanged) != 0U) {
-        return "RootChanged: ";
+        text += "RootChanged ";
     }
     if ((eventFlags & kFSEventStreamEventFlagMount) != 0U) {
-        return "Mount: ";
+        text += "Mount ";
     }
     if ((eventFlags & kFSEventStreamEventFlagUnmount) != 0U) {
-        return "Unmount: ";
+        text += "Unmount ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemCreated) != 0U) {
-        return "Created: ";
+        text += "Created ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemRemoved) != 0U) {
-        return "Removed: ";
+        text += "Removed ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemInodeMetaMod) != 0U) {
-        return "InodeMetaMod: ";
+        text += "InodeMetaMod ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemRenamed) != 0U) {
-        return "Renamed: ";
+        text += "Renamed ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemModified) != 0U) {
-        return "Modified: ";
+        text += "Modified ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemFinderInfoMod) != 0U) {
-        return "FinderInfoMod: ";
+        text += "FinderInfoMod ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemChangeOwner) != 0U) {
-        return "ChangeOwner: ";
+        text += "ChangeOwner ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemXattrMod) != 0U) {
-        return "XattrMod: ";
+        text += "XattrMod ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemIsFile) != 0U) {
-        return "IsFile: ";
+        text += "IsFile ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemIsDir) != 0U) {
-        return "IsDir: ";
+        text += "IsDir ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemIsSymlink) != 0U) {
-        return "IsSymlink: ";
+        text += "IsSymlink ";
     }
     if ((eventFlags & kFSEventStreamEventFlagOwnEvent) != 0U) {
-        return "OwnEvent: ";
+        text += "OwnEvent ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemIsHardlink) != 0U) {
-        return "IsHardlink: ";
+        text += "IsHardlink ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemIsLastHardlink) != 0U) {
-        return "IsLastHardlink: ";
+        text += "IsLastHardlink ";
     }
     if ((eventFlags & kFSEventStreamEventFlagItemCloned) != 0U) {
-        return "Cloned: ";
+        text += "Cloned ";
     }
-    return "Unknown " + std::to_string(eventFlags) + ": ";
+    if (text.empty()) {
+        text = "Unknown " + std::to_string(eventFlags) + "";
+    } else {
+        text += ": ";
+    }
+    return text;
 }
 
 class MonitorDir::MonitorDirPrivate
@@ -101,7 +108,7 @@ public:
         // auto *monitorDir = static_cast<MonitorDirPrivate *>(clientCallBackInfo);
         char **paths = static_cast<char **>(eventPaths);
         if (paths == nullptr) {
-            std::cerr << "Error: paths is null." << std::endl;
+            std::cerr << "Errorpaths is null." << std::endl;
             return;
         }
         for (size_t i = 0; i < numEvents; ++i) {
@@ -113,54 +120,55 @@ public:
         }
     }
 
-    void monitor()
+    bool monitor()
     {
-        std::cout << "addWatch: " << dir << std::endl;
-        CFStringRef pathToWatch = CFStringCreateWithCString(kCFAllocatorDefault,
-                                                            dir.c_str(),
-                                                            kCFStringEncodingUTF8);
-        CFArrayRef pathsToWatch = CFArrayCreate(kCFAllocatorDefault,
-                                                reinterpret_cast<const void **>(&pathToWatch),
-                                                1,
-                                                nullptr);
+        std::cout << "addWatch" << dir << std::endl;
+        auto pathToWatch = CFStringCreateWithCString(kCFAllocatorDefault,
+                                                     dir.c_str(),
+                                                     kCFStringEncodingUTF8);
+        auto pathsToWatch = CFArrayCreate(kCFAllocatorDefault,
+                                          reinterpret_cast<const void **>(&pathToWatch),
+                                          1,
+                                          nullptr);
         FSEventStreamContext context{0, this, nullptr, nullptr, nullptr};
-        FSEventStreamRef stream = FSEventStreamCreate(kCFAllocatorDefault,
-                                                      monitorCallback,
-                                                      &context,
-                                                      pathsToWatch,
-                                                      kFSEventStreamEventIdSinceNow,
-                                                      3,
-                                                      kFSEventStreamCreateFlagFileEvents);
-        runLoop = CFRunLoopGetCurrent();
-        FSEventStreamScheduleWithRunLoop(stream, runLoop, kCFRunLoopDefaultMode);
+        stream = FSEventStreamCreate(kCFAllocatorDefault,
+                                     monitorCallback,
+                                     &context,
+                                     pathsToWatch,
+                                     kFSEventStreamEventIdSinceNow,
+                                     0.,
+                                     kFSEventStreamCreateFlagFileEvents);
+        if (stream == nullptr) {
+            std::cerr << "Failed to create FSEventStream" << std::endl;
+            CFRelease(pathsToWatch);
+            CFRelease(pathToWatch);
+            return false;
+        }
+        auto queue = dispatch_queue_create(nullptr, nullptr);
+        FSEventStreamSetDispatchQueue(stream, queue);
         FSEventStreamStart(stream);
-        CFRunLoopRun(); // This will block until the stream is stopped.
-        FSEventStreamStop(stream);
-        FSEventStreamInvalidate(stream);
-        FSEventStreamRelease(stream);
         CFRelease(pathsToWatch);
         CFRelease(pathToWatch);
+        return true;
     }
 
     void stop()
     {
-        if (nullptr == runLoop) {
+        if (nullptr == stream) {
             return;
         }
-        if (CFRunLoopIsWaiting(runLoop) == 0U) {
-            CFRunLoopWakeUp(runLoop);
-        }
-        CFRunLoopStop(runLoop);
+        FSEventStreamStop(stream);
+        FSEventStreamInvalidate(stream);
+        FSEventStreamRelease(stream);
     }
 
-    void run() { monitor(); }
+    bool run() { return monitor(); }
 
     MonitorDir *q_ptr;
 
-    CFRunLoopRef runLoop = nullptr;
+    FSEventStreamRef stream = nullptr;
 
     std::filesystem::path dir;
-    std::thread monitorThread;
 };
 
 MonitorDir::MonitorDir(const std::filesystem::path &dir)
@@ -179,29 +187,20 @@ MonitorDir::~MonitorDir()
 
 bool MonitorDir::start()
 {
-    if (m_isRunning) {
+    if (m_isRunning.load()) {
         std::cerr << "MonitorDir is already running" << std::endl;
         return false;
     }
-
-    m_isRunning.store(true);
-    d_ptr->monitorThread = std::thread([this] {
-        d_ptr->run();
-        m_isRunning.store(false);
-    });
-
-    return true;
+    m_isRunning.store(d_ptr->run());
+    return m_isRunning.load();
 }
 
 void MonitorDir::stop()
 {
-    if (!m_isRunning) {
+    if (!m_isRunning.load()) {
         std::cerr << "MonitorDir is not running" << std::endl;
         return;
     }
 
     d_ptr->stop();
-    if (d_ptr->monitorThread.joinable()) {
-        d_ptr->monitorThread.join();
-    }
 }
