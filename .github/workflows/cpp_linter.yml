@@ -7,18 +7,22 @@ on:
         - '.gitignore'
         - 'LICENSE'
         - 'README*'
+    branches-ignore:
+        - 'dependabot/**'
   pull_request:
     paths-ignore: 
         - '.clang*'
         - '.gitignore'
         - 'LICENSE'
         - 'README*'
+    branches-ignore:
+        - 'dependabot/**'
 
 jobs:
   cpp-linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
