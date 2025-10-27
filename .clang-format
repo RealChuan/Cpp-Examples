@@ -55,6 +55,7 @@ FixNamespaceComments: true
 ForEachMacros:
   - forever
   - foreach
+  - Q_FOREACH
   - BOOST_FOREACH
 IncludeBlocks: Preserve
 IncludeCategories:
@@ -105,5 +106,8 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
+StatementMacros:
+  - Q_UNUSED
+  - QT_REQUIRE_VERSION
 TabWidth: 4
 UseTab: Never

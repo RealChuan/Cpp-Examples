@@ -1,18 +1,28 @@
-name: CMake Build
+name: CMake build and test
 
-on: 
+on:
   push:
-    paths-ignore: 
-        - '.clang*'
-        - '.gitignore'
-        - 'LICENSE'
-        - 'README*'
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/.clang-*'
+      - '**/.gitignore'
+      - '**/LICENSE*'
+      - '**/README*'
   pull_request:
-    paths-ignore: 
-        - '.clang*'
-        - '.gitignore'
-        - 'LICENSE'
-        - 'README*'
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/.clang-*'
+      - '**/.gitignore'
+      - '**/LICENSE*'
+      - '**/README*'
+
+env:
+  BUILD_DIR: build
+  BUILD_TYPE: RelWithDebInfo
 
 jobs:
   build:
@@ -25,11 +35,6 @@ jobs:
           - windows-latest
           - macos-latest
           - ubuntu-latest
-        build_type:
-          - "Debug"
-          - "Release"
-          - "MinSizeRel"
-          - "RelWithDebInfo"
         generators:
           - "Ninja"
   
@@ -41,30 +46,30 @@ jobs:
       - uses: ./.github/actions/install-dependencies
 
       - name: Configure and build windows
-        if: startsWith(matrix.os, 'windows')
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          .\scripts\windows\setVsDev.ps1
+          .\packaging\windows\Enter-VsDevShell.ps1
           cmake `
             -S . `
-            -B ./build `
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+            -B "${{ env.BUILD_DIR }}" `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
             -G "${{ matrix.generators }}" `
             ; if (-not $?) { Get-Content ./build/vcpkg_installed/vcpkg/issue_body.md; exit 1 }
-            cmake --build ./build --config ${{ matrix.build_type }}
+            cmake --build "${{ env.BUILD_DIR }}" --config ${{ env.BUILD_TYPE }}
       - name: Configure and build macos or ubuntu
-        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
+        if: runner.os == 'macOS' || runner.os == 'Linux'
         shell: bash
         run: |
           cmake \
             -S . \
-            -B ./build \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -B "${{ env.BUILD_DIR }}" \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -G "${{ matrix.generators }}" \
             || (cat ./build/vcpkg_installed/vcpkg/issue_body.md && exit 1)
-          cmake --build ./build --config ${{ matrix.build_type }}
+          cmake --build "${{ env.BUILD_DIR }}" --config ${{ env.BUILD_TYPE }}
 
-      - name: Test
+      - name: Run tests
         shell: bash
-        run: cd build && ctest -C ${{ matrix.build_type }} --output-on-failure
+        run: cd ${{ env.BUILD_DIR }} && ctest -C ${{ env.BUILD_TYPE }} --output-on-failure -j $(nproc)
           

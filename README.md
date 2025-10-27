@@ -1,56 +1,89 @@
 # Cpp-Examples
 
+一个包含多种 C++ 实用示例的代码库。
+
 - [简体中文](README.md)
 - [English](README.en.md)
 
+## 项目概述
+
+这个项目收集了各种 C++ 编程中的实用示例，涵盖了系统编程、加密算法、多线程、崩溃处理等多个领域。每个示例都力求简洁明了，便于学习和在实际项目中使用。
+
 ## 代码结构
 
-1. [Algorithm](/Algorithm/)
-   1. [Search](/Algorithm/Search/search.hpp)——各种查找算法的实现，以及单元测试和基于google benchmark的性能测试；
-      1. [std_search_examples](/Algorithm/Search/std_search_examples.cc)——stl中查找算法的例子；
-   2. [Sort](/Algorithm/Sort/sort.hpp)——各种排序算法的实现，以及单元测试和基于google benchmark的性能测试；
-      1. [std_sort_examples](/Algorithm/Sort/std_sort_examples.cc)——stl中排序算法的例子；
-2. [BinaryTree](/BinaryTree/binarytree.hpp)——二叉树的相关操作，插入、移除、查找、打印；
-3. [Breakpad](/Breakpad/breakpad.hpp)——google breakpad的简单封装；
-4. [ByteOrder](/ByteOrder/byteorder.hpp)——判断系统的字节序；
-5. [Client](/Client/client.cpp)——一个简单的Linux select socket客户端；
-6. [CountDownLatch](/CountDownLatch/countdownlatch.hpp)——使用std::mutex和std::condition_variable实现的简单倒计时门闩（std::latch c++20）；
-7. [Crashpad](/Crashpad/crashpad.hpp)——google crashpad的简单封装;
-8. [Curl](/Curl/)——curl的简单使用；
-9. [TcpClient](/Curl/tcpclient.hpp)——使用curl实现的简单tcp客户端；
-10. [HttpClient](/Curl/httpclient.hpp)——使用curl实现的简单http同步客户端；
-11. [HttpClientAsync](/Curl/httpclient_async.hpp)——使用curl实现的简单http异步客户端；
-12. [DesignPattern](/DesignPattern)——设计模式的一些例子；
-    1. [Factory](/DesignPattern/Factory/factory.hpp)——工厂模式；
-    2. [MVC](/DesignPattern/MVC/model.hpp)——mvc模式；
-    3. [Observer](/DesignPattern/Observer/observer.hpp)——观察者模式；
-    4. [Singleton](/DesignPattern/Singleton/singleton.hpp)——单例模式；
-13. [GlobMatch](/GlobMatch/globmatcher.hpp)——glob模式匹配的简单实现;
-14. [Glog](/Glog/main.cc)——google glog的例子；
-15. [Icmp](/Icmp/icmp.hpp)——linux icmp协议的简单封装；
-16. [LinkedList](/LinkedList/linkedlist.hpp)——链表的相关操作，插入、移除、反转、打印；
-17. [Memcpy](/Memcpy/memcpy.hpp)——`memcpy`函数实现；
-18. [MonitorDir](/MonitorDir/monitordir.hpp)——windows(`ReadDirectoryChangesW`)，macos(`FSEvents`)和linux(`fanotify`和`inotify`)目录监控的简单例子；
-    1. `fanotify`中使用`global`模式，在`fanotify_mark`中加入`FAN_MARK_FILESYSTEM`（需要`CAP_SYS_ADMIN`能力，即root权限）这个`flag`，可以所有在指定文件系统上的事件都会被监控，然后可以根据指定的监控的文件夹目录过滤需要的事件，这个功能比`inotify`更强大；
-       1. 获取事件发生文件所在的上级路径中，使用了`open_by_handle_at`这个方法，普通用户下会出现`Operation not permitted`错误，也需要`CAP_SYS_ADMIN`能力，即root权限;
-       2. 建议使用root权限运行，如果一定要在普通用户下运行，还是建议使用`inotify`而不是`fanotify`，反正在打开一个监控文件描述符（`fd`）的情况下，都无法实现`subtree`监控;
-19. [MonitorDir_EFSW](/MonitorDir_EFSW/main.cc)——使用efsw实现的目录监控的简单例子;
-20. [OpenSSL](/OpenSSL)——openssl的一些例子；
-    1. [aes](/OpenSSL/openssl_aes.cc)——aes加解密的例子；
-    2. [base64](/OpenSSL/openssl_base64.cc)——base64编解码的例子；
-    3. [hash](/OpenSSL/openssl_hash.cc)——sha256的例子；
-    4. [hmac](/OpenSSL/openssl_hmac.cc)——hmac的例子；
-    5. [pem](/OpenSSL/openssl_pem.cc)——pem格式的例子；
-    6. [rsa](/OpenSSL/openssl_rsa.cc)——rsa加解密的例子；
-    7. [sm4](/OpenSSL/openssl_sm4.cc)——sm4加解密的例子；
-    8. [x509](/OpenSSL/openssl_x509.cc)——x509证书的例子；
-    9. [bash](/OpenSSL/openssl_bash.sh)——openssl命令行的例子；
-21. [SafeCallback](/SafeCallback/safecallback.hpp)——生命周期安全的回调函数的实现，参考[muduo WeakCallback](https://github.com/chenshuo/muduo/blob/cpp17/muduo/base/WeakCallback.h)；
-22. [Server](/Server)——linux server的一些例子；
-    1. [server_epoll](/Server/server_epoll.cc)——epoll的例子；
-    2. [server_poll](/Server/server_poll.cc)——poll的例子；
-    3. [server_select](/Server/server_select.cc)——select的例子；
-23. [SpinMutex](/SpinMutex)——使用std::atomic_flag实现的简单互斥锁和自旋锁；
-24. [Thread](/Thread/)——基于std::jthread实现的线程类，包括线程池（`Apple Clang`不支持）；
-    1. [Thread](/Thread/thread.hpp)——线程类；
-    2. [ThreadPool](/Thread/threadpool.hpp)——线程池；
+### 1. [Breakpad](src/Breakpad/)
+
+Google Breakpad 的简单封装，用于应用程序崩溃报告和堆栈跟踪。
+
+- `breakpad.hpp` / `breakpad.cc` - Breakpad 封装类
+- `main.cc` - 使用示例
+
+### 2. [ByteOrder](src/ByteOrder/)
+
+系统字节序检测工具。
+
+- `byteorder.cc` - 判断系统的字节序（大端序/小端序）
+
+### 3. [Crashpad](src/Crashpad/)
+
+Google Crashpad 的简单封装，现代化的崩溃报告系统。
+
+- `crashpad.hpp` / `crashpad.cc` - Crashpad 封装类
+- `main.cc` - 使用示例
+
+### 4. [Memcpy](src/Memcpy/)
+
+内存拷贝函数实现及相关测试。
+
+- `mymemcpy.hpp` / `mymemcpy.cc` - 自定义 memcpy 函数实现
+- `mymemcpy_unittest.cc` - 单元测试
+
+### 5. [MonitorDir](src/MonitorDir/)
+
+跨平台目录监控实现，支持 Windows、macOS 和 Linux。
+
+- `monitordir.hpp` - 目录监控接口
+- `monitordir_win.cc` - Windows 实现（使用 `ReadDirectoryChangesW`）
+- `monitordir_mac.cc` - macOS 实现（使用 `FSEvents`）
+- `monitordir_linux_inotify.cc` - Linux inotify 实现
+- `monitordir_linux_fanotify.cc` - Linux fanotify 实现
+- `main.cc` - 使用示例
+
+**Linux 平台说明：**
+
+- `fanotify` 使用全局模式（`FAN_MARK_FILESYSTEM`），可以监控整个文件系统的事件
+- 需要 `CAP_SYS_ADMIN` 能力（root 权限）
+- 普通用户建议使用 `inotify` 实现
+
+### 6. [MonitorDir_EFSW](src/MonitorDir_EFSW/)
+
+基于 efsw 库的目录监控示例。
+
+- `main.cc` - 使用 efsw 实现的目录监控示例
+
+### 7. [OpenSSL](src/OpenSSL/)
+
+OpenSSL 加密算法使用示例。
+
+- `openssl_common.hpp` / `openssl_common.cc` - 公共工具函数
+- `openssl_aes.cc` - AES 加解密示例
+- `openssl_base64.cc` - Base64 编解码示例
+- `openssl_hash.cc` - SHA256 哈希计算示例
+- `openssl_rsa.cc` - RSA 加解密示例
+
+### 8. [Thread](src/Thread/)
+
+基于 std::jthread 实现的线程和线程池（注意：Apple Clang 不支持）。
+
+- `thread.hpp` - 线程类封装
+- `threadpool.hpp` - 线程池实现
+- `queue.hpp` - 线程安全队列
+- `*_unittest.cc` - 各组件单元测试
+
+### 9. [utils](src/utils/)
+
+通用工具类。
+
+- `scopeguard.hpp` - RAII 范围守卫
+- `object.hpp` - 对象工具类
+- `utils.hpp` - 通用工具函数

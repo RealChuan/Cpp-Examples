@@ -1,5 +1,8 @@
 name: Cleanup caches by a branch
 on:
+  # 每周一 0 点触发
+  schedule:
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 jobs:
