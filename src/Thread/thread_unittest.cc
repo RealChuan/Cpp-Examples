@@ -372,11 +372,10 @@ TEST_F(ThreadTest, RapidStartStop)
     std::vector<std::unique_ptr<Thread>> threads;
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        auto thread = std::make_unique<Thread>([](std::stop_token token) {
-            // 空任务，立即返回
-        });
+        auto thread = std::make_unique<Thread>(
+            [](std::stop_token token) { std::this_thread::sleep_for(10ms); });
 
-        EXPECT_FALSE(thread->start()); // 线程状态很快变为Stopped
+        EXPECT_TRUE(thread->start());
         threads.push_back(std::move(thread));
     }
 

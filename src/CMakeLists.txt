@@ -4,6 +4,7 @@ add_subdirectory(Crashpad)
 add_subdirectory(Memcpy)
 add_subdirectory(MonitorDir)
 add_subdirectory(MonitorDir_EFSW)
+add_subdirectory(Singleton)
 add_subdirectory(OpenSSL)
 
 if(CMAKE_HOST_WIN32)
