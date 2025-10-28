@@ -1,5 +1,7 @@
 #include "breakpad.hpp"
 
+#include <utils/utils.hpp>
+
 #ifdef _WIN32
 #include <client/windows/handler/exception_handler.h>
 #elif __APPLE__
@@ -8,83 +10,177 @@
 #include <client/linux/handler/exception_handler.h>
 #endif
 
-#include <codecvt>
+#include <filesystem>
 #include <iostream>
-#include <locale>
+#include <stdexcept>
+
+class BreakpadPrivate
+{
+public:
+    explicit BreakpadPrivate(const std::string &dump_path, int timeout_ms, Breakpad *q);
+    ~BreakpadPrivate() = default;
+
+    bool initialize();
+
+    bool handleCrash(const std::string &dump_path, bool succeeded);
+
+    Breakpad *q_ptr;
+
+    std::string dumpPath;
+    int timeoutMS;
+    Breakpad::CrashCallback crashCallback;
+    std::unique_ptr<google_breakpad::ExceptionHandler> handlerPtr;
+};
+
+namespace {
 
 #ifdef _WIN32
 
-auto convertWideStringToUTF8(const wchar_t *wstr) -> std::string
+std::string toUtf8(const std::wstring &wstr)
 {
-    if (wstr == nullptr) {
+    if (wstr.empty())
         return {};
-    }
 
-    // 首先，获取转换后的字符串长度（不包括空终止符）
-    int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
-
-    // 如果转换失败，返回空字符串
-    if (len == 0) {
+    int size_needed = WideCharToMultiByte(CP_UTF8,
+                                          0,
+                                          wstr.c_str(),
+                                          (int) wstr.size(),
+                                          nullptr,
+                                          0,
+                                          nullptr,
+                                          nullptr);
+    if (size_needed == 0)
         return {};
-    }
 
-    // 分配足够的空间来存储转换后的字符串
-    std::string utf8String(len, 0);
-
-    // 执行转换
-    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, &utf8String[0], len, nullptr, nullptr);
-
-    // 去除末尾的空字符
-    utf8String.resize(len - 1);
-    return utf8String;
+    std::string str(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8,
+                        0,
+                        wstr.c_str(),
+                        (int) wstr.size(),
+                        &str[0],
+                        size_needed,
+                        nullptr,
+                        nullptr);
+    return str;
 }
 
-auto callback(const wchar_t *dump_path,
-              const wchar_t *id,
-              void *context,
-              EXCEPTION_POINTERS *exinfo,
-              MDRawAssertionInfo *assertion,
-              bool succeeded) -> bool
+bool windowsCallback(const wchar_t *dump_path,
+                     const wchar_t *id,
+                     void *context,
+                     EXCEPTION_POINTERS *exinfo,
+                     MDRawAssertionInfo *assertion,
+                     bool succeeded)
 {
-    const auto *succeeded_str = succeeded ? "succeeded" : "fialed";
-    auto dump_path_str = convertWideStringToUTF8(dump_path) + convertWideStringToUTF8(id);
-    std::cout << "Create dump file " << succeeded_str << " Dump path: " << dump_path_str << '\n';
-    return succeeded;
+    auto *private_impl = static_cast<BreakpadPrivate *>(context);
+    std::string full_path = toUtf8(dump_path) + toUtf8(id) + ".dmp";
+    return private_impl->handleCrash(full_path, succeeded);
 }
+
 #elif __APPLE__
-bool callback(const char *dump_path, const char *id, void *context, bool succeeded)
+
+bool macCallback(const char *dump_path, const char *id, void *context, bool succeeded)
 {
-    auto succeeded_str = succeeded ? "succeeded" : "fialed";
-    std::cout << "Create dump file " << succeeded_str << " Dump path: " << dump_path << std::endl;
-    return succeeded;
+    auto *private_impl = static_cast<BreakpadPrivate *>(context);
+    std::string full_path = std::string(dump_path) + std::string(id) + ".dmp";
+    return private_impl->handleCrash(full_path, succeeded);
 }
+
 #elif __linux__
-bool callback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded)
+
+bool linuxCallback(const google_breakpad::MinidumpDescriptor &descriptor,
+                   void *context,
+                   bool succeeded)
 {
-    auto succeeded_str = succeeded ? "succeeded" : "fialed";
-    std::cout << "Create dump file " << succeeded_str << " Dump path: " << descriptor.path()
+    auto *private_impl = static_cast<BreakpadPrivate *>(context);
+    return private_impl->handleCrash(descriptor.path(), succeeded);
+}
+
+#endif
+
+} // namespace
+
+BreakpadPrivate::BreakpadPrivate(const std::string &dump_path, int timeout_ms, Breakpad *q)
+    : q_ptr(q)
+    , dumpPath(dump_path)
+    , timeoutMS(timeout_ms)
+{
+    if (!initialize()) {
+        throw std::runtime_error("Failed to initialize Breakpad");
+    }
+}
+
+bool BreakpadPrivate::initialize()
+{
+    try {
+        std::filesystem::create_directories(dumpPath);
+    } catch (const std::filesystem::filesystem_error &e) {
+        std::cerr << "Failed to create dump directory: " << e.what() << std::endl;
+        return false;
+    }
+
+#ifdef _WIN32
+    handlerPtr = std::make_unique<google_breakpad::ExceptionHandler>(
+        Utils::toWide(dumpPath),
+        nullptr,
+        &windowsCallback,
+        this,
+        google_breakpad::ExceptionHandler::HANDLER_ALL);
+#elif __APPLE__
+    handlerPtr = std::make_unique<google_breakpad::ExceptionHandler>(dumpPath,
+                                                                     nullptr,
+                                                                     &macCallback,
+                                                                     this,
+                                                                     true,
+                                                                     nullptr);
+
+#elif __linux__
+    handlerPtr = std::make_unique<google_breakpad::ExceptionHandler>(
+        google_breakpad::MinidumpDescriptor(dumpPath), nullptr, &linuxCallback, this, true, -1);
+#endif
+
+    if (!handlerPtr) {
+        std::cerr << "Failed to create ExceptionHandler" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool BreakpadPrivate::handleCrash(const std::string &dump_path, bool succeeded)
+{
+    // 调用用户设置的回调函数
+    if (crashCallback) {
+        return crashCallback(dump_path, succeeded);
+    }
+
+    // 默认处理：输出日志信息
+    std::cout << "Crash dump " << (succeeded ? "succeeded" : "failed") << ": " << dump_path
               << std::endl;
     return succeeded;
 }
-#endif
 
-Breakpad::Breakpad(const std::string &dump_path)
-{
-#ifdef _WIN32
-    auto dump_path_w = std::wstring(dump_path.begin(), dump_path.end());
-    handler_ptr = std::make_unique<google_breakpad::ExceptionHandler>(
-        dump_path_w, nullptr, callback, nullptr, google_breakpad::ExceptionHandler::HANDLER_ALL);
-#elif __APPLE__
-    handler_ptr = std::make_unique<google_breakpad::ExceptionHandler>(dump_path,
-                                                                      nullptr,
-                                                                      callback,
-                                                                      nullptr,
-                                                                      true,
-                                                                      nullptr);
-#elif __linux__
-    handler_ptr = std::make_unique<google_breakpad::ExceptionHandler>(
-        google_breakpad::MinidumpDescriptor(dump_path), nullptr, callback, nullptr, true, -1);
-#endif
-}
+Breakpad::Breakpad(const std::string &dump_path, int timeout_ms)
+    : d_ptr(std::make_unique<BreakpadPrivate>(dump_path, timeout_ms, this))
+{}
 
 Breakpad::~Breakpad() = default;
+
+void Breakpad::setCrashCallback(CrashCallback callback)
+{
+    d_ptr->crashCallback = std::move(callback);
+}
+
+bool Breakpad::writeMinidump()
+{
+    return d_ptr->handlerPtr && d_ptr->handlerPtr->WriteMinidump();
+}
+
+std::string Breakpad::getDumpPath() const
+{
+    return d_ptr->dumpPath;
+}
+
+int Breakpad::getTimeoutMs() const
+{
+    return d_ptr->timeoutMS;
+}

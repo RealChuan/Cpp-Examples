@@ -71,5 +71,11 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: cd ${{ env.BUILD_DIR }} && ctest -C ${{ env.BUILD_TYPE }} --output-on-failure -j $(nproc)
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            CPU_COUNT=$(sysctl -n hw.ncpu)
+          else
+            CPU_COUNT=$(nproc)
+          fi
+          cd ${{ env.BUILD_DIR }} && ctest -C ${{ env.BUILD_TYPE }} --output-on-failure -j $CPU_COUNT
           

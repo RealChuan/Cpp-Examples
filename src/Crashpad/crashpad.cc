@@ -1,70 +1,129 @@
 #include "crashpad.hpp"
 
+#include <utils/utils.hpp>
+
 #include <crashpad/client/crash_report_database.h>
 #include <crashpad/client/crashpad_client.h>
 #include <crashpad/client/settings.h>
 
-#ifdef _WIN32
-auto convertStringToWideString(const std::string &str) -> std::wstring
+#include <filesystem>
+#include <iostream>
+
+class Crashpad::CrashpadPrivate
 {
-    if (str.empty()) {
-        return {};
+public:
+    explicit CrashpadPrivate(const std::string &dumpPath,
+                             const std::string &libexecPath,
+                             const std::string &reportUrl,
+                             bool crashReportingEnabled,
+                             Crashpad *q)
+        : q_ptr(q)
+        , dumpPath(dumpPath)
+        , libexecPath(libexecPath)
+        , reportUrl(reportUrl)
+        , crashReportingEnabled(crashReportingEnabled)
+    {
+        if (!initialize()) {
+            throw std::runtime_error("Failed to initialize Crashpad");
+        }
     }
+    ~CrashpadPrivate() = default;
 
-    // 首先，获取转换后的字符串长度（不包括空终止符）
-    int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    bool initialize()
+    {
+        try {
+            std::filesystem::create_directories(dumpPath);
+        } catch (const std::filesystem::filesystem_error &e) {
+            std::cerr << "Failed to create dump directory: " << e.what() << std::endl;
+            return false;
+        }
 
-    // 如果转换失败，返回空字符串
-    if (len == 0) {
-        return {};
-    }
+        // 构建handler路径
+        auto handlerPath = libexecPath + "/crashpad_handler";
 
-    // 分配足够的空间来存储转换后的字符串
-    std::wstring wstr(len, 0);
-
-    // 执行转换
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], len);
-
-    // 去除末尾的空字符
-    wstr.resize(len - 1);
-    return wstr;
-}
+#ifdef _WIN32
+        handlerPath += ".exe";
+        base::FilePath database(Utils::toWide(dumpPath));
+        base::FilePath handler(Utils::toWide(handlerPath));
+#else
+        base::FilePath database(dumpPath);
+        base::FilePath handler(handlerPath);
 #endif
+
+        databasePtr = crashpad::CrashReportDatabase::Initialize(database);
+        if (!databasePtr) {
+            std::cerr << "Failed to initialize CrashReportDatabase" << std::endl;
+            return false;
+        }
+
+        if (auto *settings = databasePtr->GetSettings()) {
+            settings->SetUploadsEnabled(crashReportingEnabled);
+        }
+
+#ifdef __linux__
+        bool asynchronous_start = false;
+#else
+        bool asynchronous_start = true;
+#endif
+
+        // 启动Crashpad handler
+        crashpadClientPtr = std::make_unique<crashpad::CrashpadClient>();
+        bool success = crashpadClientPtr->StartHandler(handler,
+                                                       database,
+                                                       database,
+                                                       reportUrl,
+                                                       {},                  // annotations
+                                                       {"--no-rate-limit"}, // arguments
+                                                       true,                // restartable
+                                                       asynchronous_start);
+
+        if (!success) {
+            std::cerr << "Failed to start Crashpad handler" << std::endl;
+            return false;
+        }
+
+        std::cout << "Crashpad initialized successfully" << std::endl;
+        std::cout << "Dump path: " << dumpPath << std::endl;
+        std::cout << "Report URL: " << reportUrl << std::endl;
+        std::cout << "Reporting enabled: " << (crashReportingEnabled ? "yes" : "no") << std::endl;
+
+        return true;
+    }
+
+    Crashpad *q_ptr;
+
+    std::string dumpPath;
+    std::string libexecPath;
+    std::string reportUrl;
+    bool crashReportingEnabled;
+    std::unique_ptr<crashpad::CrashpadClient> crashpadClientPtr;
+    std::unique_ptr<crashpad::CrashReportDatabase> databasePtr;
+};
 
 Crashpad::Crashpad(const std::string &dumpPath,
                    const std::string &libexecPath,
                    const std::string &reportUrl,
                    bool crashReportingEnabled)
-{
-    auto handlerPath = libexecPath + "/crashpad_handler";
-#ifdef _WIN32
-    handlerPath += ".exe";
-    base::FilePath database(convertStringToWideString(dumpPath));
-    base::FilePath handler(convertStringToWideString(handlerPath));
-#else
-    base::FilePath database(dumpPath);
-    base::FilePath handler(handlerPath);
-#endif
-#ifdef __linux__
-    bool asynchronous_start = false;
-#else
-    bool asynchronous_start = true;
-#endif
-
-    auto dbPtr = crashpad::CrashReportDatabase::Initialize(database);
-    if (dbPtr && (dbPtr->GetSettings() != nullptr)) {
-        dbPtr->GetSettings()->SetUploadsEnabled(crashReportingEnabled);
-    }
-
-    m_crashpadClientPtr = std::make_unique<crashpad::CrashpadClient>();
-    m_crashpadClientPtr->StartHandler(handler,
-                                      database,
-                                      database,
-                                      reportUrl,
-                                      {},
-                                      {"--no-rate-limit"},
-                                      true,
-                                      asynchronous_start);
-}
+    : d_ptr(std::make_unique<CrashpadPrivate>(dumpPath,
+                                              libexecPath,
+                                              reportUrl,
+                                              crashReportingEnabled,
+                                              this))
+{}
 
 Crashpad::~Crashpad() = default;
+
+std::string Crashpad::getDumpPath() const
+{
+    return d_ptr->dumpPath;
+}
+
+std::string Crashpad::getReportUrl() const
+{
+    return d_ptr->reportUrl;
+}
+
+bool Crashpad::isReportingEnabled() const
+{
+    return d_ptr->crashReportingEnabled;
+}

@@ -2,19 +2,26 @@
 
 #include <utils/object.hpp>
 
+#include <functional>
 #include <memory>
 #include <string>
 
-namespace google_breakpad {
-class ExceptionHandler;
-}
-
+class BreakpadPrivate;
 class Breakpad : noncopyable
 {
 public:
-    explicit Breakpad(const std::string &dump_path);
+    using CrashCallback = std::function<bool(const std::string &dump_path, bool succeeded)>;
+
+    explicit Breakpad(const std::string &dump_path, int timeout_ms = 5000);
     ~Breakpad();
 
+    void setCrashCallback(CrashCallback callback);
+
+    bool writeMinidump();
+
+    std::string getDumpPath() const;
+    int getTimeoutMs() const;
+
 private:
-    std::unique_ptr<google_breakpad::ExceptionHandler> handler_ptr;
+    std::unique_ptr<BreakpadPrivate> d_ptr;
 };

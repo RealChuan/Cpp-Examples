@@ -1,1 +1,1 @@
-add_executable(byteorder_test byteorder.cc)
+add_executable(byteorder byteorder.cc)

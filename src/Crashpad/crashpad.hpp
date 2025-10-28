@@ -5,10 +5,6 @@
 #include <memory>
 #include <string>
 
-namespace crashpad {
-class CrashpadClient;
-} // namespace crashpad
-
 class Crashpad : noncopyable
 {
 public:
@@ -16,8 +12,14 @@ public:
                       const std::string &libexecPath,
                       const std::string &reportUrl,
                       bool crashReportingEnabled);
+
     ~Crashpad();
 
+    std::string getDumpPath() const;
+    std::string getReportUrl() const;
+    bool isReportingEnabled() const;
+
 private:
-    std::unique_ptr<crashpad::CrashpadClient> m_crashpadClientPtr;
+    class CrashpadPrivate;
+    std::unique_ptr<CrashpadPrivate> d_ptr;
 };
