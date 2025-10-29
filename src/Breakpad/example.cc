@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     try {
         auto dumpPath = std::filesystem::current_path() / "crash_dumps";
-        Breakpad breakpad(dumpPath.string(), 10000);
+        Breakpad breakpad(dumpPath.string());
 
         // 设置详细的崩溃回调
         breakpad.setCrashCallback([](const std::string &dump_path, bool success) {
@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
 
         std::cout << "Breakpad initialized successfully" << std::endl;
         std::cout << "Dump path: " << breakpad.getDumpPath() << std::endl;
-        std::cout << "Timeout: " << breakpad.getTimeoutMs() << "ms" << std::endl;
 
         // 解析命令行参数
         bool should_crash = false;

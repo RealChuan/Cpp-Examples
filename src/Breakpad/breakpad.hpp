@@ -12,7 +12,7 @@ class Breakpad : noncopyable
 public:
     using CrashCallback = std::function<bool(const std::string &dump_path, bool succeeded)>;
 
-    explicit Breakpad(const std::string &dump_path, int timeout_ms = 5000);
+    explicit Breakpad(const std::string &dump_path);
     ~Breakpad();
 
     void setCrashCallback(CrashCallback callback);
@@ -20,7 +20,6 @@ public:
     bool writeMinidump();
 
     std::string getDumpPath() const;
-    int getTimeoutMs() const;
 
 private:
     std::unique_ptr<BreakpadPrivate> d_ptr;

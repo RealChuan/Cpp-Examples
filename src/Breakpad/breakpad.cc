@@ -17,7 +17,7 @@
 class BreakpadPrivate
 {
 public:
-    explicit BreakpadPrivate(const std::string &dump_path, int timeout_ms, Breakpad *q);
+    explicit BreakpadPrivate(const std::string &dump_path, Breakpad *q);
     ~BreakpadPrivate() = default;
 
     bool initialize();
@@ -27,7 +27,6 @@ public:
     Breakpad *q_ptr;
 
     std::string dumpPath;
-    int timeoutMS;
     Breakpad::CrashCallback crashCallback;
     std::unique_ptr<google_breakpad::ExceptionHandler> handlerPtr;
 };
@@ -99,10 +98,9 @@ bool linuxCallback(const google_breakpad::MinidumpDescriptor &descriptor,
 
 } // namespace
 
-BreakpadPrivate::BreakpadPrivate(const std::string &dump_path, int timeout_ms, Breakpad *q)
+BreakpadPrivate::BreakpadPrivate(const std::string &dump_path, Breakpad *q)
     : q_ptr(q)
     , dumpPath(dump_path)
-    , timeoutMS(timeout_ms)
 {
     if (!initialize()) {
         throw std::runtime_error("Failed to initialize Breakpad");
@@ -159,8 +157,8 @@ bool BreakpadPrivate::handleCrash(const std::string &dump_path, bool succeeded)
     return succeeded;
 }
 
-Breakpad::Breakpad(const std::string &dump_path, int timeout_ms)
-    : d_ptr(std::make_unique<BreakpadPrivate>(dump_path, timeout_ms, this))
+Breakpad::Breakpad(const std::string &dump_path)
+    : d_ptr(std::make_unique<BreakpadPrivate>(dump_path, this))
 {}
 
 Breakpad::~Breakpad() = default;
@@ -178,9 +176,4 @@ bool Breakpad::writeMinidump()
 std::string Breakpad::getDumpPath() const
 {
     return d_ptr->dumpPath;
-}
-
-int Breakpad::getTimeoutMs() const
-{
-    return d_ptr->timeoutMS;
 }

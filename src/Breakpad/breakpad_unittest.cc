@@ -28,27 +28,12 @@ protected:
     std::string test_dump_path_;
 };
 
-// 测试基本构造和析构
-TEST_F(BreakpadTest, ConstructionAndDestruction)
-{
-    EXPECT_NO_THROW({ Breakpad breakpad(test_dump_path_); });
-
-    EXPECT_NO_THROW({
-        Breakpad breakpad(test_dump_path_, 10000); // 带超时参数
-    });
-}
-
 // 测试获取配置信息
 TEST_F(BreakpadTest, GetConfiguration)
 {
-    Breakpad breakpad(test_dump_path_, 8000);
+    Breakpad breakpad(test_dump_path_);
 
     EXPECT_EQ(breakpad.getDumpPath(), test_dump_path_);
-    EXPECT_EQ(breakpad.getTimeoutMs(), 8000);
-
-    // 测试默认超时时间
-    Breakpad breakpad_default(test_dump_path_);
-    EXPECT_EQ(breakpad_default.getTimeoutMs(), 5000);
 }
 
 // 测试设置回调函数
