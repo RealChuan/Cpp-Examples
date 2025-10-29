@@ -5,7 +5,6 @@
   "description": "manifest",
   "dependencies": [
     "breakpad",
-    "benchmark",
     "crashpad",
     "efsw",
     "gtest",

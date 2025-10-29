@@ -8,13 +8,12 @@
 class ThreadPool : noncopyable
 {
 public:
-    using Task = std::function<void()>;
+    using Task = Thread::Task; // 统一使用 Thread::Task 类型
 
     explicit ThreadPool(size_t threadCount = std::thread::hardware_concurrency(),
                         size_t maxQueueSize = 1000)
         : m_maxQueueSize(maxQueueSize == 0 ? 1 : maxQueueSize)
     {
-        // 确保至少有一个线程
         if (threadCount == 0) {
             threadCount = 1;
         }
@@ -47,23 +46,23 @@ public:
                               std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
     }
 
-    // 提交任务并返回 future
+    // 提交接受 stop_token 的任务并返回 future
     template<typename F, typename... Args>
-    auto submitFuture(F &&f, Args &&...args) -> std::future<std::invoke_result_t<F, Args...>>
+    auto submitFuture(F &&f, Args &&...args)
+        -> std::future<std::invoke_result_t<F, std::stop_token, Args...>>
     {
-        using return_type = std::invoke_result_t<F, Args...>;
+        using return_type = std::invoke_result_t<F, std::stop_token, Args...>;
 
-        auto task = std::make_shared<std::packaged_task<return_type()>>(
+        auto task = std::make_shared<std::packaged_task<return_type(std::stop_token)>>(
             [func = std::forward<F>(f),
-             args = std::make_tuple(std::forward<Args>(args)...)]() mutable {
-                return std::apply(func, std::move(args));
+             args = std::make_tuple(std::forward<Args>(args)...)](std::stop_token token) mutable {
+                return std::apply(func, std::tuple_cat(std::make_tuple(token), std::move(args)));
             });
 
         std::future<return_type> result = task->get_future();
 
-        bool success = submit([task]() { (*task)(); });
+        bool success = submit([task](std::stop_token token) { (*task)(token); });
         if (!success) {
-            // 创建一个已经就绪的future，包含异常
             std::promise<return_type> p;
             p.set_exception(std::make_exception_ptr(
                 std::runtime_error("ThreadPool is stopped or queue is full")));
@@ -77,32 +76,34 @@ public:
     void waitAll()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_condAllDone.wait(lock, [this]() { return m_totalTasks == 0 && m_taskQueue.empty(); });
+        m_condAllDone.wait(lock, [this]() {
+            return m_totalTasks == 0 && m_taskQueue.empty() && m_runningTasks == 0;
+        });
     }
 
     // 带超时的等待
-    template<typename Rep, typename Period>
-    bool waitAllFor(const std::chrono::duration<Rep, Period> &timeout)
+    bool waitAllFor(std::chrono::milliseconds timeout = std::chrono::milliseconds::max())
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_condAllDone.wait_for(lock, timeout, [this]() {
-            return m_totalTasks == 0 && m_taskQueue.empty();
+            return m_totalTasks == 0 && m_taskQueue.empty() && m_runningTasks == 0;
         });
     }
 
     // 优雅关闭 - 等待所有任务完成
     void shutdown()
     {
-        if (m_stop.exchange(true)) {
-            return; // 已经在关闭过程中
-        }
-
-        // 通知所有条件变量
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_condEmpty.notify_all();
-            m_condFull.notify_all();
+            if (m_stop) {
+                return; // 已经在关闭过程中
+            }
+            m_stop = true;
         }
+
+        // 通知所有条件变量（不需要在锁内通知）
+        m_condEmpty.notify_all();
+        m_condFull.notify_all();
 
         // 停止所有工作线程
         for (auto &worker : m_workers) {
@@ -123,6 +124,7 @@ public:
             std::lock_guard<std::mutex> lock(m_mutex);
             std::queue<Task>().swap(m_taskQueue);
             m_totalTasks = 0;
+            m_runningTasks = 0;
         }
 
         m_condAllDone.notify_all();
@@ -131,13 +133,14 @@ public:
     // 立即关闭 - 丢弃未执行的任务
     void shutdownNow()
     {
-        if (m_stop.exchange(true)) {
-            return;
-        }
-
-        // 清空任务队列
         {
             std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop) {
+                return;
+            }
+            m_stop = true;
+
+            // 清空任务队列
             std::queue<Task>().swap(m_taskQueue);
             m_totalTasks = 0;
         }
@@ -174,15 +177,30 @@ public:
         shutdownNow();
 
         // 重置状态
-        m_stop.store(false);
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_stop = false;
+            m_runningTasks = 0;
+            m_totalTasks = 0;
+        }
 
         // 创建新的工作线程
         return initializeWorkers(threadCount);
     }
 
     // 获取线程池状态
-    [[nodiscard]] auto isRunning() const -> bool { return !m_stop.load(); }
-    [[nodiscard]] auto isStopped() const -> bool { return m_stop.load(); }
+    [[nodiscard]] auto isRunning() const -> bool
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return !m_stop;
+    }
+
+    [[nodiscard]] auto isStopped() const -> bool
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_stop;
+    }
+
     [[nodiscard]] auto size() const -> size_t { return m_workers.size(); }
 
     [[nodiscard]] auto queueSize() const -> size_t
@@ -191,7 +209,11 @@ public:
         return m_taskQueue.size();
     }
 
-    [[nodiscard]] auto getMaxQueueSize() const -> size_t { return m_maxQueueSize; }
+    [[nodiscard]] auto getMaxQueueSize() const -> size_t
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_maxQueueSize;
+    }
 
     [[nodiscard]] auto getRunningTasks() const -> size_t
     {
@@ -248,10 +270,12 @@ private:
     bool submitInternal(F &&task, bool nonBlocking, std::chrono::milliseconds timeout)
     {
         // 快速检查是否已停止
-        if (m_stop.load()) {
-            return false;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop) {
+                return false;
+            }
         }
-
         {
             std::unique_lock<std::mutex> lock(m_mutex);
 
@@ -264,45 +288,44 @@ private:
                 if (timeout.count() > 0) {
                     // 带超时等待
                     if (!m_condFull.wait_for(lock, timeout, [this]() {
-                            return m_stop.load() || m_taskQueue.size() < m_maxQueueSize;
+                            return m_stop || m_taskQueue.size() < m_maxQueueSize;
                         })) {
                         return false; // 超时
                     }
                 } else {
                     // 无限等待
                     m_condFull.wait(lock, [this]() {
-                        return m_stop.load() || m_taskQueue.size() < m_maxQueueSize;
+                        return m_stop || m_taskQueue.size() < m_maxQueueSize;
                     });
                 }
             }
 
-            if (m_stop.load()) {
+            if (m_stop) {
                 return false;
             }
 
             m_taskQueue.push(std::forward<F>(task));
             m_totalTasks++;
         }
-
         m_condEmpty.notify_one();
         return true;
     }
 
     void workerThread(std::stop_token token)
     {
-        while (!token.stop_requested() && !m_stop.load()) {
+        while (true) {
             Task task;
 
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
 
-                // 等待任务或停止信号 - 修复：使用正确的条件变量等待方式
+                // 等待任务或停止信号
                 m_condEmpty.wait(lock, [this, &token]() {
-                    return !m_taskQueue.empty() || m_stop.load() || token.stop_requested();
+                    return !m_taskQueue.empty() || m_stop || token.stop_requested();
                 });
 
                 // 检查停止条件
-                if (m_stop.load() || token.stop_requested()) {
+                if (m_stop || token.stop_requested()) {
                     break;
                 }
 
@@ -313,13 +336,16 @@ private:
                 // 获取任务
                 task = std::move(m_taskQueue.front());
                 m_taskQueue.pop();
+                if (m_maxQueueSize > 0 && m_taskQueue.size() < m_maxQueueSize) {
+                    m_condFull.notify_one();
+                }
                 m_runningTasks++;
             }
 
-            // 执行任务
+            // 执行任务，传递 stop_token
             try {
                 if (task) {
-                    task();
+                    task(token); // 传递 stop_token 给任务
                 }
             } catch (const std::exception &e) {
                 std::cerr << "ThreadPool task exception: " << e.what() << std::endl;
@@ -334,20 +360,9 @@ private:
                 m_totalTasks--;
 
                 // 通知等待的线程
-                if (m_totalTasks == 0 && m_taskQueue.empty()) {
+                if (m_totalTasks == 0 && m_taskQueue.empty() && m_runningTasks == 0) {
                     m_condAllDone.notify_all();
                 }
-                if (m_maxQueueSize > 0 && m_taskQueue.size() < m_maxQueueSize) {
-                    m_condFull.notify_all();
-                }
-            }
-        }
-
-        // 线程退出前的清理
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            if (m_runningTasks > 0) {
-                m_runningTasks--;
             }
         }
     }
@@ -355,14 +370,14 @@ private:
 private:
     std::vector<std::unique_ptr<Thread>> m_workers;
     std::queue<Task> m_taskQueue;
-    std::atomic<bool> m_stop{false};
-    size_t m_maxQueueSize;
 
-    // 以下变量受 m_mutex 保护
+    // 所有状态变量都用 mutex 保护
+    mutable std::mutex m_mutex;
+    bool m_stop{false};
+    size_t m_maxQueueSize;
     size_t m_runningTasks{0};
     size_t m_totalTasks{0};
 
-    mutable std::mutex m_mutex;
     std::condition_variable m_condEmpty;
     std::condition_variable m_condFull;
     std::condition_variable m_condAllDone;
